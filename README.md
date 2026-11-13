@@ -1,5 +1,4 @@
-# neuropulse
-Experimental Pupil Response Research Platform
+
 
 # NEUROPULSE
 ### See the Signal. Unlock Better Care.
