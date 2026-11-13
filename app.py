@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 
 
-# --------------------------------------------------
-# 1. PAGE CONFIGURATION
-# --------------------------------------------------
+# ==================================================
+# PAGE CONFIGURATION
+# ==================================================
 
 st.set_page_config(
     page_title="NEUROPULSE | BIOPTIQ",
@@ -21,201 +21,93 @@ st.set_page_config(
 )
 
 
-# --------------------------------------------------
-# 2. SESSION STATE
-# --------------------------------------------------
+# ==================================================
+# SESSION STATE
+# ==================================================
 
-if "profile_name" not in st.session_state:
-    st.session_state.profile_name = ""
-
-if "profile_dob" not in st.session_state:
-    st.session_state.profile_dob = date.today()
-
-if "profile_notes" not in st.session_state:
-    st.session_state.profile_notes = ""
-
-if "sessions" not in st.session_state:
-    st.session_state.sessions = []
-
-if "video_inspection" not in st.session_state:
-    st.session_state.video_inspection = None
-
-
-# --------------------------------------------------
-# 3. LIGHT THEME
-# --------------------------------------------------
-
-st.markdown("""
-<style>
-
-.stApp {
-    background-color: #F4F8FC;
-    color: #243B53;
+defaults = {
+    "profile_name": "",
+    "profile_dob": date.today(),
+    "profile_notes": "",
+    "sessions": [],
+    "video_inspection": None
 }
 
-[data-testid="stAppViewContainer"] {
-    background-color: #F4F8FC;
-}
-
-section[data-testid="stSidebar"] {
-    background-color: #EAF2FA;
-    border-right: 1px solid #D8E4F0;
-}
-
-section[data-testid="stSidebar"] * {
-    color: #173B60 !important;
-}
-
-h1, h2, h3, h4 {
-    color: #173B60 !important;
-}
-
-p, li {
-    color: #40566F;
-}
-
-div[data-testid="stMetric"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #DCE6F1 !important;
-    border-radius: 13px !important;
-    padding: 16px !important;
-}
-
-div[data-testid="stMetric"] label,
-div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-    color: #173B60 !important;
-}
-
-div[data-testid="stVerticalBlockBorderWrapper"],
-div[data-testid="stForm"],
-div[data-testid="stExpander"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #DCE6F1 !important;
-    border-radius: 13px !important;
-}
-
-div[data-testid="stForm"] {
-    padding: 18px !important;
-}
-
-.stTextInput input,
-.stDateInput input,
-.stTextArea textarea,
-.stNumberInput input {
-    background-color: #FFFFFF !important;
-    color: #173B60 !important;
-    border: 1px solid #C9D8E8 !important;
-    border-radius: 8px !important;
-}
-
-.stTextInput label,
-.stDateInput label,
-.stTextArea label {
-    color: #344B67 !important;
-}
-
-div[data-testid="stFileUploader"] {
-    background-color: #FFFFFF !important;
-    border: 1px dashed #A9C1D9 !important;
-    border-radius: 12px !important;
-    padding: 15px !important;
-}
-
-.stButton > button,
-.stDownloadButton > button,
-.stFormSubmitButton > button {
-    background-color: #1769AA !important;
-    color: #FFFFFF !important;
-    border: none !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-}
-
-.stButton > button:hover,
-.stDownloadButton > button:hover {
-    background-color: #12558C !important;
-    color: #FFFFFF !important;
-}
-
-div[data-testid="stDataFrame"] {
-    background-color: #FFFFFF !important;
-    border-radius: 10px !important;
-}
-
-div[data-testid="stAlert"] {
-    background-color: #FFFFFF !important;
-    border-radius: 10px !important;
-}
-
-div[data-baseweb="select"] > div {
-    background-color: #FFFFFF !important;
-    color: #173B60 !important;
-}
-
-.stCaption {
-    color: #71849A !important;
-}
-
-.brand-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0 18px 0;
-    border-bottom: 1px solid #DCE6F1;
-    margin-bottom: 25px;
-}
-
-.brand-product {
-    color: #1769AA;
-    font-size: 25px;
-    font-weight: 800;
-    letter-spacing: 2px;
-}
-
-.brand-company {
-    color: #173B60;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 2px;
-}
-
-.app-footer {
-    text-align: center;
-    color: #8193A8;
-    font-size: 12px;
-    padding: 25px 0 10px 0;
-}
-
-</style>
-""", unsafe_allow_html=True)
+for key, value in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
-# --------------------------------------------------
-# 4. BRAND HEADER
-# --------------------------------------------------
+# ==================================================
+# SIDEBAR
+# ==================================================
+
+st.sidebar.markdown("# NEUROPULSE")
+
+st.sidebar.caption("A BIOPTIQ PRODUCT")
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown("### WORKSPACE")
+
+page = st.sidebar.radio(
+    "Navigate",
+    [
+        "Overview",
+        "Pupil Check",
+        "Sessions",
+        "My Profile",
+        "Research",
+        "About"
+    ],
+    label_visibility="collapsed"
+)
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown("### PLATFORM NOTE")
+
+st.sidebar.caption(
+    "NEUROPULSE is an evolving healthcare technology "
+    "prototype exploring visual assessment and "
+    "neurological signal analysis."
+)
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown("### DEVELOPMENT")
+
+st.sidebar.caption("Research and Development")
+
+st.sidebar.caption("Version 0.1")
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown("**BIOPTIQ**")
+
+st.sidebar.caption("The Future of Vision.")
+
+
+# ==================================================
+# BRAND HEADER
+# ==================================================
 
 brand_left, brand_right = st.columns([3, 1])
 
 with brand_left:
-    st.markdown(
-        "<h2 style='color:#1769AA; letter-spacing:2px;'>"
-        "NEUROPULSE</h2>",
-        unsafe_allow_html=True
-    )
+    st.title("NEUROPULSE")
+    st.caption("SEE THE SIGNAL. UNLOCK BETTER CARE.")
 
 with brand_right:
-    st.markdown(
-        "<h3 style='text-align:right; color:#173B60;'>"
-        "BIOPTIQ</h3>",
-        unsafe_allow_html=True
-    )
+    st.markdown("### BIOPTIQ")
+    st.caption("The Future of Vision.")
 
 st.divider()
 
 
-# --------------------------------------------------
-# 5. HELPER FUNCTIONS
-# --------------------------------------------------
+# ==================================================
+# HELPER FUNCTIONS
+# ==================================================
 
 def calculate_age(dob):
 
@@ -249,7 +141,7 @@ def inspect_video(video_bytes, filename):
         capture = cv2.VideoCapture(temporary_path)
 
         if not capture.isOpened():
-            return None, "Unable to open this video file."
+            return None, "Unable to open the uploaded video."
 
         frame_count = int(
             capture.get(cv2.CAP_PROP_FRAME_COUNT)
@@ -321,131 +213,108 @@ def inspect_video(video_bytes, filename):
             Path(temporary_path).unlink()
 
 
-# --------------------------------------------------
-# 6. SIDEBAR NAVIGATION
-# --------------------------------------------------
-
-st.sidebar.title("NEUROPULSE")
-
-st.sidebar.caption("Clinical Visual Assessment Platform")
-
-st.sidebar.divider()
-
-page = st.sidebar.radio(
-    "Navigation",
-    [
-        "Overview",
-        "Pupil Check",
-        "Sessions",
-        "My Profile",
-        "Research",
-        "About"
-    ]
-)
-
-st.sidebar.divider()
-
-st.sidebar.caption("BIOPTIQ | The Future of Vision.")
-
-
-# --------------------------------------------------
-# 7. OVERVIEW
-# --------------------------------------------------
+# ==================================================
+# OVERVIEW
+# ==================================================
 
 if page == "Overview":
 
-    st.title("Welcome to NEUROPULSE")
+    st.title("Overview")
 
     st.write(
-        "A research-oriented platform designed to explore "
-        "visual assessment and neurological signal analysis."
+        "A visual assessment and neurological signal "
+        "research platform."
     )
 
-    st.divider()
-
-    st.subheader("Platform Overview")
+    st.markdown("### Workspace Overview")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Platform", "NEUROPULSE")
+        st.metric(
+            "Recorded Sessions",
+            len(st.session_state.sessions)
+        )
 
     with col2:
         st.metric(
-            "Current Sessions",
-            len(st.session_state.sessions)
+            "Video Inspection",
+            "Completed" if st.session_state.video_inspection else "Pending"
         )
 
     with col3:
         st.metric(
-            "Video Inspections",
-            1 if st.session_state.video_inspection else 0
+            "Platform Version",
+            "0.1"
         )
 
     st.divider()
 
-    st.subheader("Explore the Platform")
+    st.markdown("### Explore NEUROPULSE")
 
-    col1, col2 = st.columns(2)
+    left, right = st.columns(2)
 
-    with col1:
+    with left:
 
-        with st.container(border=True):
+        st.subheader("Pupil Check")
 
-            st.subheader("Pupil Check")
+        st.write(
+            "Upload a video, inspect its technical properties "
+            "and explore extracted frames."
+        )
 
-            st.write(
-                "Upload and inspect videos, review metadata "
-                "and visualize selected frames."
-            )
+    with right:
 
-    with col2:
+        st.subheader("Assessment Sessions")
 
-        with st.container(border=True):
+        st.write(
+            "Create and review your assessment session records."
+        )
 
-            st.subheader("Sessions")
+    st.divider()
 
-            st.write(
-                "Create and review assessment session records."
-            )
+    st.markdown("### Current Development")
 
-    st.info(
-        "Automated pupil detection and clinical measurements "
-        "are not yet implemented."
+    st.write(
+        "The current prototype supports video inspection, "
+        "frame extraction, session recording and profile "
+        "management."
+    )
+
+    st.caption(
+        "Automated pupil detection and validated clinical "
+        "measurements are not yet available."
     )
 
 
-# --------------------------------------------------
-# 8. PUPIL CHECK
-# --------------------------------------------------
+# ==================================================
+# PUPIL CHECK
+# ==================================================
 
 elif page == "Pupil Check":
 
     st.title("Pupil Check")
 
     st.write(
-        "Upload a video for technical inspection "
-        "and sample-frame visualization."
+        "Video inspection and visual frame exploration."
     )
 
-    st.info(
-        "Current functionality includes video metadata "
-        "inspection and frame extraction. Automated pupil "
-        "detection is not yet implemented."
-    )
+    st.markdown("### Upload Video")
 
     uploaded_video = st.file_uploader(
-        "Upload a video",
+        "Choose a video file",
         type=["mp4", "avi", "mov", "mkv"]
     )
 
     if uploaded_video is not None:
 
-        st.write(f"Selected file: {uploaded_video.name}")
+        st.caption(
+            f"Selected file: {uploaded_video.name}"
+        )
 
         if st.button("Inspect Video", type="primary"):
 
-            with st.spinner("Inspecting video..."):
+            with st.spinner("Processing video..."):
 
                 result, error = inspect_video(
                     uploaded_video.getvalue(),
@@ -453,10 +322,13 @@ elif page == "Pupil Check":
                 )
 
                 if error:
+
                     st.error(error)
 
                 else:
+
                     st.session_state.video_inspection = result
+
                     st.success("Video inspection completed.")
 
     result = st.session_state.video_inspection
@@ -465,7 +337,7 @@ elif page == "Pupil Check":
 
         st.divider()
 
-        st.subheader("Video Information")
+        st.markdown("### Video Analysis Details")
 
         col1, col2, col3 = st.columns(3)
 
@@ -492,7 +364,10 @@ elif page == "Pupil Check":
         col4, col5 = st.columns(2)
 
         with col4:
-            st.metric("Total Frames", result["frame_count"])
+            st.metric(
+                "Total Frames",
+                result["frame_count"]
+            )
 
         with col5:
             st.write("**File Name**")
@@ -500,7 +375,7 @@ elif page == "Pupil Check":
 
         st.divider()
 
-        st.subheader("Extracted Sample Frames")
+        st.markdown("### Extracted Frames")
 
         if result["frames"]:
 
@@ -512,7 +387,7 @@ elif page == "Pupil Check":
 
                     st.image(
                         frame,
-                        caption=f"Sample Frame {index + 1}",
+                        caption=f"Frame {index + 1}",
                         use_container_width=True
                     )
 
@@ -520,22 +395,34 @@ elif page == "Pupil Check":
 
             st.warning("No frames could be extracted.")
 
+    st.divider()
 
-# --------------------------------------------------
-# 9. SESSIONS
-# --------------------------------------------------
+    st.caption(
+        "Research prototype: automated pupil detection, "
+        "pupil diameter calculation and clinical interpretation "
+        "are not currently implemented."
+    )
+
+
+# ==================================================
+# SESSIONS
+# ==================================================
 
 elif page == "Sessions":
 
     st.title("Assessment Sessions")
 
-    st.write("Create and manage your session records.")
+    st.write(
+        "Create and manage your assessment records."
+    )
+
+    st.markdown("### New Session")
 
     with st.form("session_form"):
 
         session_name = st.text_input(
             "Session Name",
-            placeholder="Enter a session name"
+            placeholder="Enter session name"
         )
 
         session_date = st.date_input(
@@ -543,7 +430,9 @@ elif page == "Sessions":
             value=date.today()
         )
 
-        submitted = st.form_submit_button("Save Session")
+        submitted = st.form_submit_button(
+            "Save Session"
+        )
 
         if submitted:
 
@@ -554,15 +443,15 @@ elif page == "Sessions":
                     "Date": session_date.strftime("%Y-%m-%d")
                 })
 
-                st.success("Session saved successfully.")
+                st.success("Session saved.")
 
             else:
 
-                st.warning("Please enter a session name.")
+                st.warning("Enter a session name.")
 
     st.divider()
 
-    st.subheader("Session History")
+    st.markdown("### Session History")
 
     if st.session_state.sessions:
 
@@ -581,7 +470,7 @@ elif page == "Sessions":
         ).encode("utf-8")
 
         st.download_button(
-            "Download Session Records",
+            "Export Session Records",
             data=csv_data,
             file_name="neuropulse_sessions.csv",
             mime="text/csv"
@@ -589,25 +478,28 @@ elif page == "Sessions":
 
     else:
 
-        st.info("No sessions have been recorded yet.")
+        st.caption("No assessment sessions recorded yet.")
 
 
-# --------------------------------------------------
-# 10. MY PROFILE
-# --------------------------------------------------
+# ==================================================
+# MY PROFILE
+# ==================================================
 
 elif page == "My Profile":
 
     st.title("My Profile")
 
-    st.write("Manage your personal profile information.")
+    st.write(
+        "Manage your profile information."
+    )
+
+    st.markdown("### Profile Details")
 
     with st.form("profile_form"):
 
         profile_name = st.text_input(
             "Full Name",
-            value=st.session_state.profile_name,
-            placeholder="Enter your name"
+            value=st.session_state.profile_name
         )
 
         profile_dob = st.date_input(
@@ -622,23 +514,27 @@ elif page == "My Profile":
             placeholder="Enter additional notes..."
         )
 
-        profile_submitted = st.form_submit_button("Save Profile")
+        submitted = st.form_submit_button(
+            "Save Profile"
+        )
 
-        if profile_submitted:
+        if submitted:
 
             st.session_state.profile_name = profile_name
             st.session_state.profile_dob = profile_dob
             st.session_state.profile_notes = profile_notes
 
-            st.success("Profile updated successfully.")
+            st.success("Profile updated.")
 
     st.divider()
 
-    st.subheader("Profile Summary")
+    st.markdown("### Profile Summary")
 
     if st.session_state.profile_name:
 
-        st.write(f"**Name:** {st.session_state.profile_name}")
+        st.write(
+            f"**Name:** {st.session_state.profile_name}"
+        )
 
         st.write(
             f"**Date of Birth:** "
@@ -653,72 +549,75 @@ elif page == "My Profile":
         if st.session_state.profile_notes:
 
             st.write("**Additional Notes:**")
+
             st.write(st.session_state.profile_notes)
 
     else:
 
-        st.info("Your profile has not been completed yet.")
+        st.caption("Complete your profile to see your summary.")
 
 
-# --------------------------------------------------
-# 11. RESEARCH
-# --------------------------------------------------
+# ==================================================
+# RESEARCH
+# ==================================================
 
 elif page == "Research":
 
     st.title("Research and Development")
 
     st.write(
-        "NEUROPULSE explores visual signals and their "
-        "potential role in neurological assessment."
+        "Exploring visual signals and their potential "
+        "applications in neurological assessment."
     )
 
     st.divider()
 
-    st.subheader("Research Directions")
+    st.markdown("### Research Directions")
 
-    with st.container(border=True):
+    st.subheader("01 — Pupil Assessment")
 
-        st.markdown("### Pupil Assessment")
-
-        st.write(
-            "Exploring image and video-based pupil assessment "
-            "methods and their potential applications."
-        )
-
-    with st.container(border=True):
-
-        st.markdown("### Visual Signal Analysis")
-
-        st.write(
-            "Investigating measurable visual signals and "
-            "their possible relationship with neurological function."
-        )
-
-    with st.container(border=True):
-
-        st.markdown("### Clinical Research Integration")
-
-        st.write(
-            "Exploring computational methods that could support "
-            "future clinical research workflows."
-        )
+    st.write(
+        "Exploration of video-based pupil assessment "
+        "and image-processing methods."
+    )
 
     st.divider()
 
-    st.subheader("Current Development Status")
+    st.subheader("02 — Visual Signal Analysis")
+
+    st.write(
+        "Investigation of measurable visual signals "
+        "and their possible relationship with neurological function."
+    )
+
+    st.divider()
+
+    st.subheader("03 — Clinical Research Integration")
+
+    st.write(
+        "Exploring computational approaches that could "
+        "support clinical research workflows."
+    )
+
+    st.divider()
+
+    st.markdown("### Development Status")
 
     st.write(
         "The current version supports video inspection, "
-        "sample-frame extraction, session recording and "
-        "profile management. Further research and validation "
-        "are required before clinical use."
+        "sample-frame extraction, session records and "
+        "profile management."
+    )
+
+    st.caption(
+        "Further research and validation are required "
+        "before clinical application."
     )
 
 
-# --------------------------------------------------
-# 12. ABOUT
-# --------------------------------------------------
+# ==================================================
+# ABOUT
+# ==================================================
 
 elif page == "About":
 
@@ -727,50 +626,48 @@ elif page == "About":
     st.subheader("See the Signal. Unlock Better Care.")
 
     st.write(
-        "NEUROPULSE is a research-oriented healthcare technology "
-        "platform being developed to explore visual assessment "
+        "NEUROPULSE is a research-oriented healthcare "
+        "technology platform exploring visual assessment "
         "and neurological signal analysis."
     )
 
     st.divider()
 
-    st.subheader("Developed Under")
+    st.markdown("### Parent Company")
 
-    st.markdown("**BIOPTIQ**")
+    st.subheader("BIOPTIQ")
 
     st.write("The Future of Vision.")
 
     st.divider()
 
-    st.subheader("Current Capabilities")
+    st.markdown("### Current Capabilities")
 
-    st.markdown("""
-    - Video upload and inspection
-    - Video metadata extraction
-    - Sample-frame visualization
-    - Assessment session records
-    - User profile management
-    """)
+    st.write("Video upload and inspection")
+    st.write("Video metadata extraction")
+    st.write("Sample-frame visualization")
+    st.write("Assessment session records")
+    st.write("Profile management")
 
     st.divider()
 
-    st.subheader("Important Disclaimer")
+    st.markdown("### Research Disclaimer")
 
-    st.warning(
+    st.write(
         "NEUROPULSE is an early-stage research and development "
-        "platform. It is not a medical device and does not provide "
-        "medical diagnosis, treatment recommendations or validated "
-        "clinical measurements. Do not use it to make clinical "
-        "decisions."
+        "prototype. It is not a medical device and does not "
+        "provide medical diagnosis, treatment recommendations "
+        "or validated clinical measurements. It should not "
+        "be used to make clinical decisions."
     )
 
 
-# --------------------------------------------------
-# 13. FOOTER
-# --------------------------------------------------
+# ==================================================
+# FOOTER
+# ==================================================
 
-st.markdown("---")
+st.divider()
 
 st.caption(
-    "NEUROPULSE · A BIOPTIQ PRODUCT · The Future of Vision."
+    "NEUROPULSE  |  A BIOPTIQ PRODUCT  |  The Future of Vision."
 )
