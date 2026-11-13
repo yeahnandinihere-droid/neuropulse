@@ -1,87 +1,110 @@
+
 from pathlib import Path
-from datetime import date 
+from datetime import date
 import tempfile
-import streamlit as st 
+
+import streamlit as st
 import cv2
 import numpy as np
-import pandas as pd 
-# ==========================================
+import pandas as pd
+
+
+# =====================================================
 # 1. PAGE CONFIGURATION
-# ==========================================
+# =====================================================
 
 st.set_page_config(
     page_title="NEUROPULSE | BIOPTIQ",
     page_icon="👁️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# ==========================================
+
+# =====================================================
 # 2. FILE PATHS
-# ==========================================
+# =====================================================
 
 BASE_DIR = Path(__file__).resolve().parent
 
-BRAND_IMAGE = (
-    BASE_DIR
-    / "Bioptiq and Neuropulse Identity.webp"
-)
+BRAND_IMAGE = BASE_DIR / "Bioptiq and Neuropulse Identity.webp"
 
-# ==========================================
-# 3. SESSION STATE
-# ==========================================
+
+# =====================================================
+# 3. SESSION STATE INITIALIZATION
+# =====================================================
 
 if "profile_name" not in st.session_state:
     st.session_state.profile_name = ""
 
 if "profile_dob" not in st.session_state:
-    st.session_state.profile_dob = None
+    st.session_state.profile_dob = date.today()
+
+if "profile_notes" not in st.session_state:
+    st.session_state.profile_notes = ""
 
 if "sessions" not in st.session_state:
     st.session_state.sessions = []
-    if "profile_notes" not in st.session_state:
-    st.session_state.profile_notes = ""
-  # ==========================================
+
+if "video_inspection" not in st.session_state:
+    st.session_state.video_inspection = None
+
+if "video_name" not in st.session_state:
+    st.session_state.video_name = None
+
+
+# =====================================================
 # 4. CUSTOM DESIGN
-# ==========================================
+# =====================================================
 
 st.markdown(
     """
     <style>
+
+    /* Main application background */
+
     .stApp {
-        background-color: #F3F7FB !important;
-        color: #18344F !important;
+        background-color: #F3F7FB;
+        color: #18344F;
     }
 
     [data-testid="stHeader"] {
-        background-color: #F3F7FB !important;
+        background-color: #F3F7FB;
     }
 
+    /* Sidebar */
+
     [data-testid="stSidebar"] {
-        background-color: #DCE8F2 !important;
+        background-color: #DCE8F2;
     }
 
     [data-testid="stSidebar"] * {
         color: #18344F !important;
     }
 
+    /* Headings */
+
     h1, h2, h3, h4 {
         color: #173B5B !important;
     }
 
-    p, label, li,
-    [data-testid="stMarkdownContainer"] {
-        color: #304F6C !important;
+    /* General text */
+
+    p, label, li {
+        color: #304F6C;
     }
 
     [data-testid="stCaptionContainer"] p {
-        color: #496984 !important;
+        color: #496984;
     }
 
+    /* Metrics */
+
     [data-testid="stMetric"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #C8D8E7 !important;
-        border-radius: 14px !important;
-        padding: 18px !important;
+        background-color: #FFFFFF;
+        border: 1px solid #C8D8E7;
+        border-radius: 14px;
+        padding: 18px;
     }
 
     [data-testid="stMetricValue"],
@@ -89,10 +112,7 @@ st.markdown(
         color: #173B5B !important;
     }
 
-    input, textarea {
-        background-color: #FFFFFF !important;
-        color: #18344F !important;
-    }
+    /* Text inputs */
 
     [data-testid="stTextInput"] input,
     [data-testid="stTextArea"] textarea,
@@ -102,11 +122,22 @@ st.markdown(
         border: 1px solid #AFC4D8 !important;
     }
 
+    /* Date input */
+
+    [data-testid="stDateInput"] input {
+        background-color: #FFFFFF !important;
+        color: #18344F !important;
+    }
+
+    /* Buttons */
+
     .stButton button,
     .stDownloadButton button {
-        background-color: #1B659B !important;
+        background-color: #1B659B;
         color: #FFFFFF !important;
-        border-radius: 9px !important;
+        border: none;
+        border-radius: 9px;
+        min-height: 42px;
     }
 
     .stButton button p,
@@ -114,19 +145,53 @@ st.markdown(
         color: #FFFFFF !important;
     }
 
+    .stButton button:hover,
+    .stDownloadButton button:hover {
+        background-color: #144B75;
+        border: none;
+    }
+
+    /* File uploader */
+
     [data-testid="stFileUploader"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #C8D8E7 !important;
-        border-radius: 12px !important;
+        background-color: #FFFFFF;
+        border: 1px solid #C8D8E7;
+        border-radius: 12px;
+        padding: 12px;
     }
 
     [data-testid="stFileUploader"] * {
         color: #18344F !important;
     }
 
+    /* Alerts */
+
     [data-testid="stAlert"] {
-        background-color: #FFFFFF !important;
-        color: #18344F !important;
+        background-color: #FFFFFF;
+        color: #18344F;
+        border-radius: 10px;
+    }
+
+    /* Dividers */
+
+    hr {
+        border-color: #C8D8E7;
+    }
+
+    /* Form containers */
+
+    [data-testid="stForm"] {
+        background-color: #FFFFFF;
+        border: 1px solid #D5E1EC;
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    /* Data tables */
+
+    [data-testid="stDataFrame"] {
+        background-color: #FFFFFF;
+        border-radius: 10px;
     }
 
     </style>
@@ -135,9 +200,9 @@ st.markdown(
 )
 
 
-# ==========================================
-# 5. AGE CALCULATION
-# ==========================================
+# =====================================================
+# 5. HELPER FUNCTIONS
+# =====================================================
 
 def calculate_age(dob):
 
@@ -154,48 +219,164 @@ def calculate_age(dob):
     return age
 
 
-# ==========================================
+def inspect_video(video_bytes, filename):
+
+    temporary_path = None
+    capture = None
+
+    try:
+
+        suffix = Path(filename).suffix or ".mp4"
+
+        with tempfile.NamedTemporaryFile(
+            suffix=suffix,
+            delete=False
+        ) as temp_file:
+
+            temp_file.write(video_bytes)
+            temporary_path = temp_file.name
+
+        capture = cv2.VideoCapture(temporary_path)
+
+        if not capture.isOpened():
+            raise ValueError("Unable to open this video recording.")
+
+        fps = capture.get(cv2.CAP_PROP_FPS)
+
+        total_frames = int(
+            capture.get(cv2.CAP_PROP_FRAME_COUNT)
+        )
+
+        width = int(
+            capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+        )
+
+        height = int(
+            capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        )
+
+        duration = (
+            total_frames / fps
+            if fps > 0
+            else 0
+        )
+
+        sample_frames = []
+
+        if total_frames > 0:
+
+            positions = np.linspace(
+                0,
+                total_frames - 1,
+                num=min(6, total_frames),
+                dtype=int
+            )
+
+            for position in positions:
+
+                capture.set(
+                    cv2.CAP_PROP_POS_FRAMES,
+                    int(position)
+                )
+
+                success, frame = capture.read()
+
+                if success:
+
+                    frame = cv2.cvtColor(
+                        frame,
+                        cv2.COLOR_BGR2RGB
+                    )
+
+                    sample_frames.append(
+                        {
+                            "position": int(position),
+                            "image": frame
+                        }
+                    )
+
+        return {
+            "filename": filename,
+            "width": width,
+            "height": height,
+            "fps": fps,
+            "total_frames": total_frames,
+            "duration": duration,
+            "sample_frames": sample_frames
+        }
+
+    finally:
+
+        if capture is not None:
+            capture.release()
+
+        if temporary_path is not None:
+
+            Path(temporary_path).unlink(
+                missing_ok=True
+            )
+
+
+# =====================================================
 # 6. BRANDING
-# ==========================================
+# =====================================================
 
 if BRAND_IMAGE.exists():
 
     st.image(
         str(BRAND_IMAGE),
-        width=340
+        width=360
     )
 
 else:
 
     st.warning(
-        "Brand identity image is not available."
+        "Original BIOPTIQ and NEUROPULSE brand image "
+        "could not be found in the repository root."
     )
 
 
-st.markdown("""
-<div class="dashboard-banner">
+st.title("NEUROPULSE")
 
-<h1>Pupil Response Dashboard</h1>
+st.markdown(
+    """
+    **Pupil Response Dashboard**
 
-<p>
-Explore pupil-response recordings, organize sessions
-and build a personalized physiological research profile.
-</p>
+    Explore pupil-response recordings, organize sessions
+    and build a personalized physiological research profile.
+    """
+)
 
-</div>
-""", unsafe_allow_html=True)
+profile_age = calculate_age(
+    st.session_state.profile_dob
+)
 
-age = calculate_age(st.session_state.profile_dob)
+if st.session_state.profile_name:
 
-if age is not None:
-    st.caption(f"Profile age: {age} years")
+    if profile_age is not None:
+
+        st.caption(
+            f"Welcome, {st.session_state.profile_name} "
+            f"· Age: {profile_age} years"
+        )
+
+    else:
+
+        st.caption(
+            f"Welcome, {st.session_state.profile_name}"
+        )
+
 else:
-    st.caption("Profile age: Not added")
+
+    st.caption("Profile information has not been added yet.")
 
 
-# ==========================================
+st.divider()
+
+
+# =====================================================
 # 7. NAVIGATION
-# ==========================================
+# =====================================================
 
 st.sidebar.title("NEUROPULSE")
 
@@ -224,9 +405,9 @@ st.sidebar.caption(
 )
 
 
-# ==========================================
+# =====================================================
 # 8. OVERVIEW
-# ==========================================
+# =====================================================
 
 if page == "Overview":
 
@@ -241,49 +422,73 @@ if page == "Overview":
     col1, col2, col3 = st.columns(3)
 
     with col1:
+
         st.metric(
             "Total Sessions",
             len(st.session_state.sessions)
         )
 
     with col2:
+
+        profile_complete = bool(
+            st.session_state.profile_name.strip()
+        )
+
         st.metric(
             "Profile Status",
-            "Complete"
-            if st.session_state.profile_dob
-            else "Pending"
+            "Complete" if profile_complete else "Pending"
         )
 
     with col3:
+
         st.metric(
             "Workspace",
             "Active"
         )
 
+    st.divider()
+
     st.subheader("Explore Your Workspace")
 
-    st.markdown("""
-    **Pupil Check**
+    with st.container(border=True):
 
-    Upload and review pupil-response video recordings.
+        st.subheader("Pupil Check")
 
-    **Sessions**
+        st.write(
+            "Upload and review pupil-response video recordings "
+            "and inspect their technical properties."
+        )
 
-    Organize and export recording sessions.
+    with st.container(border=True):
 
-    **My Profile**
+        st.subheader("Sessions")
 
-    Manage profile information and personal research records.
+        st.write(
+            "Create, organize and export recording sessions."
+        )
 
-    **Research**
+    with st.container(border=True):
 
-    Explore the scientific direction and development of NEUROPULSE.
-    """)
+        st.subheader("My Profile")
+
+        st.write(
+            "Manage your name, date of birth, age "
+            "and additional research notes."
+        )
+
+    with st.container(border=True):
+
+        st.subheader("Research")
+
+        st.write(
+            "Explore the scientific direction and "
+            "development of NEUROPULSE."
+        )
 
 
-# ==========================================
-# 9. VIDEO INSPECTION
-# ==========================================
+# =====================================================
+# 9. PUPIL CHECK
+# =====================================================
 
 elif page == "Pupil Check":
 
@@ -292,6 +497,10 @@ elif page == "Pupil Check":
     st.write(
         "Upload a recording to review its visual content "
         "and technical properties."
+    )
+
+    st.info(
+        "Supported video formats: MP4, MOV, AVI and MKV."
     )
 
     uploaded_video = st.file_uploader(
@@ -303,6 +512,13 @@ elif page == "Pupil Check":
 
         video_bytes = uploaded_video.getvalue()
 
+        if st.session_state.video_name != uploaded_video.name:
+
+            st.session_state.video_name = uploaded_video.name
+            st.session_state.video_inspection = None
+
+        st.subheader("Recording Preview")
+
         st.video(video_bytes)
 
         if st.button(
@@ -310,143 +526,94 @@ elif page == "Pupil Check":
             type="primary"
         ):
 
-            temporary_path = None
-            capture = None
+            with st.spinner(
+                "Inspecting recording and extracting sample frames..."
+            ):
 
-            try:
+                try:
 
-                with tempfile.NamedTemporaryFile(
-                    suffix=".mp4",
-                    delete=False
-                ) as temp_file:
-
-                    temp_file.write(video_bytes)
-                    temporary_path = temp_file.name
-
-                capture = cv2.VideoCapture(
-                    temporary_path
-                )
-
-                if not capture.isOpened():
-
-                    st.error(
-                        "Unable to read this video."
+                    result = inspect_video(
+                        video_bytes,
+                        uploaded_video.name
                     )
 
-                else:
-
-                    fps = capture.get(
-                        cv2.CAP_PROP_FPS
-                    )
-
-                    total_frames = int(
-                        capture.get(
-                            cv2.CAP_PROP_FRAME_COUNT
-                        )
-                    )
-
-                    width = int(
-                        capture.get(
-                            cv2.CAP_PROP_FRAME_WIDTH
-                        )
-                    )
-
-                    height = int(
-                        capture.get(
-                            cv2.CAP_PROP_FRAME_HEIGHT
-                        )
-                    )
-
-                    duration = (
-                        total_frames / fps
-                        if fps > 0
-                        else 0
-                    )
+                    st.session_state.video_inspection = result
 
                     st.success(
-                        "Recording information retrieved."
+                        "Recording information retrieved successfully."
                     )
 
-                    col1, col2, col3 = st.columns(3)
+                except Exception as error:
 
-                    col1.metric(
-                        "Resolution",
-                        f"{width} × {height}"
+                    st.session_state.video_inspection = None
+
+                    st.error(
+                        f"Recording inspection failed: {error}"
                     )
 
-                    col2.metric(
-                        "Frame Rate",
-                        f"{fps:.2f} FPS"
-                    )
+        result = st.session_state.video_inspection
 
-                    col3.metric(
-                        "Duration",
-                        f"{duration:.2f} sec"
-                    )
+        if result is not None:
 
-                    st.metric(
-                        "Total Frames",
-                        total_frames
-                    )
+            st.divider()
 
-                    if st.button(
-                        "Extract Sample Frames"
-                    ):
+            st.subheader("Recording Information")
 
-                        positions = np.linspace(
-                            0,
-                            max(total_frames - 1, 0),
-                            min(6, total_frames),
-                            dtype=int
-                        )
+            col1, col2, col3 = st.columns(3)
 
-                        frames = []
+            with col1:
 
-                        for position in positions:
-
-                            capture.set(
-                                cv2.CAP_PROP_POS_FRAMES,
-                                int(position)
-                            )
-
-                            success, frame = capture.read()
-
-                            if success:
-
-                                frame = cv2.cvtColor(
-                                    frame,
-                                    cv2.COLOR_BGR2RGB
-                                )
-
-                                frames.append(frame)
-
-                        st.subheader(
-                            "Recording Preview"
-                        )
-
-                        for index, frame in enumerate(frames):
-
-                            st.image(
-                                frame,
-                                caption=f"Frame {index + 1}",
-                                width=350
-                            )
-
-            except Exception as error:
-
-                st.error(
-                    f"Recording inspection failed: {error}"
+                st.metric(
+                    "Resolution",
+                    f"{result['width']} × {result['height']}"
                 )
 
-            finally:
+            with col2:
 
-                if capture is not None:
-                    capture.release()
+                st.metric(
+                    "Frame Rate",
+                    f"{result['fps']:.2f} FPS"
+                )
 
-                if temporary_path:
-                    Path(temporary_path).unlink(
-                        missing_ok=True
-                    )
+            with col3:
+
+                st.metric(
+                    "Duration",
+                    f"{result['duration']:.2f} sec"
+                )
+
+            st.metric(
+                "Total Frames",
+                result["total_frames"]
+            )
+
+            st.divider()
+
+            st.subheader("Extracted Sample Frames")
+
+            frames = result["sample_frames"]
+
+            if frames:
+
+                columns = st.columns(3)
+
+                for index, frame_data in enumerate(frames):
+
+                    with columns[index % 3]:
+
+                        st.image(
+                            frame_data["image"],
+                            caption=(
+                                f"Frame {frame_data['position']}"
+                            ),
+                            use_container_width=True
+                        )
+
+            else:
+
+                st.info(
+                    "No readable sample frames were extracted."
+                )
 
     else:
 
@@ -454,10 +621,13 @@ elif page == "Pupil Check":
             "Upload a video recording to begin."
         )
 
+        st.session_state.video_inspection = None
+        st.session_state.video_name = None
 
-# ==========================================
+
+# =====================================================
 # 10. SESSIONS
-# ==========================================
+# =====================================================
 
 elif page == "Sessions":
 
@@ -467,31 +637,39 @@ elif page == "Sessions":
         "Organize and review your recording sessions."
     )
 
-    session_name = st.text_input(
-        "Session Name",
-        placeholder="Enter session name"
-    )
+    with st.form("session_form"):
 
-    if st.button("Create Session"):
+        session_name = st.text_input(
+            "Session Name",
+            placeholder="Enter session name"
+        )
 
-        if session_name.strip():
+        submitted = st.form_submit_button(
+            "Create Session"
+        )
 
-            st.session_state.sessions.append({
-                "Session": session_name,
-                "Date": date.today().isoformat()
-            })
+        if submitted:
 
-            st.success(
-                "Session created successfully."
-            )
+            if session_name.strip():
 
-            st.rerun()
+                st.session_state.sessions.append(
+                    {
+                        "Session": session_name.strip(),
+                        "Date": date.today().isoformat()
+                    }
+                )
 
-        else:
+                st.success(
+                    "Session created successfully."
+                )
 
-            st.warning(
-                "Please enter a session name."
-            )
+            else:
+
+                st.warning(
+                    "Please enter a session name."
+                )
+
+    st.divider()
 
     if st.session_state.sessions:
 
@@ -509,9 +687,7 @@ elif page == "Sessions":
 
         st.download_button(
             "Export Sessions",
-            data=session_df.to_csv(
-                index=False
-            ),
+            data=session_df.to_csv(index=False),
             file_name="neuropulse_sessions.csv",
             mime="text/csv"
         )
@@ -523,17 +699,16 @@ elif page == "Sessions":
         )
 
 
-# ==========================================
+# =====================================================
 # 11. MY PROFILE
-# ==========================================
+# =====================================================
 
 elif page == "My Profile":
 
     st.header("My Profile")
 
     st.write(
-        "Manage your personal profile and "
-        "research notes."
+        "Manage your personal profile and research notes."
     )
 
     with st.form("profile_form"):
@@ -554,21 +729,26 @@ elif page == "My Profile":
         notes = st.text_area(
             "Additional Notes",
             value=st.session_state.profile_notes,
-            placeholder="Add your personal or research notes...",
+            placeholder=(
+                "Add your personal or research notes..."
+            ),
             height=150
         )
 
         submitted = st.form_submit_button(
-            "Save Profile"
+            "Save Profile",
+            type="primary"
         )
 
         if submitted:
 
-            st.session_state.profile_name = name
+            st.session_state.profile_name = name.strip()
             st.session_state.profile_dob = dob
             st.session_state.profile_notes = notes
 
-            st.success("Profile saved successfully.")
+            st.success(
+                "Profile saved successfully."
+            )
 
     st.divider()
 
@@ -578,26 +758,56 @@ elif page == "My Profile":
 
     st.subheader("Profile Information")
 
-    st.write(
-        f"**Name:** "
-        f"{st.session_state.profile_name or 'Not added'}"
-    )
+    col1, col2 = st.columns(2)
 
-    st.write(
-        f"**Age:** "
-        f"{str(age) + ' years' if age is not None else 'Not added'}"
-    )
+    with col1:
 
-    st.write("**Additional Notes:**")
+        st.metric(
+            "Name",
+            st.session_state.profile_name or "Not added"
+        )
+
+    with col2:
+
+        st.metric(
+            "Age",
+            f"{age} years" if age is not None else "Not added"
+        )
+
+    st.subheader("Additional Notes")
 
     if st.session_state.profile_notes.strip():
-        st.write(st.session_state.profile_notes)
-    else:
-        st.caption("No additional notes added.")
 
-# ==========================================
+        st.write(
+            st.session_state.profile_notes
+        )
+
+    else:
+
+        st.caption(
+            "No additional notes added."
+        )
+
+    st.divider()
+
+    st.markdown(
+        """
+        <div style="text-align:center; padding:12px;">
+            <h3 style="color:#173B5B;">
+                NEUROPULSE | BIOPTIQ
+            </h3>
+            <p style="color:#496984;">
+                See the Signal. Unlock Better Care.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# =====================================================
 # 12. RESEARCH
-# ==========================================
+# =====================================================
 
 elif page == "Research":
 
@@ -612,7 +822,7 @@ elif page == "Research":
 
     with st.container(border=True):
 
-        st.markdown("**Pupil Detection and Tracking**")
+        st.subheader("Pupil Detection and Tracking")
 
         st.write(
             "Exploring image-processing approaches to identify "
@@ -621,7 +831,7 @@ elif page == "Research":
 
     with st.container(border=True):
 
-        st.markdown("**Quantitative Pupil Analysis**")
+        st.subheader("Quantitative Pupil Analysis")
 
         st.write(
             "Investigating pupil diameter, constriction amplitude, "
@@ -630,7 +840,7 @@ elif page == "Research":
 
     with st.container(border=True):
 
-        st.markdown("**Longitudinal Research Profiles**")
+        st.subheader("Longitudinal Research Profiles")
 
         st.write(
             "Organizing repeated recordings to explore "
@@ -645,9 +855,9 @@ elif page == "Research":
     )
 
 
-# ==========================================
+# =====================================================
 # 13. ABOUT
-# ==========================================
+# =====================================================
 
 elif page == "About":
 
@@ -676,6 +886,18 @@ elif page == "About":
         "to pupil-response recordings and physiological research."
     )
 
+    st.subheader("Current Platform Capabilities")
+
+    st.write(
+        """
+        - Video upload and preview.
+        - Recording metadata inspection.
+        - Sample frame extraction.
+        - Recording session organization.
+        - Personal research profile management.
+        """
+    )
+
     st.subheader("Research Disclaimer")
 
     st.info(
@@ -685,14 +907,16 @@ elif page == "About":
     )
 
 
-# ==========================================
+# =====================================================
 # 14. FOOTER
-# ==========================================
+# =====================================================
 
 st.divider()
 
 st.markdown(
-    "**BIOPTIQ** | The Future of Vision."
+    """
+    **BIOPTIQ** | The Future of Vision.
+    """
 )
 
 st.caption(
@@ -702,5 +926,3 @@ st.caption(
 st.caption(
     "Experimental research platform."
 )
-
-            
