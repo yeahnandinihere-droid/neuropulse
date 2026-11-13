@@ -14,7 +14,7 @@ st.set_page_config(
     page_icon="👁️",
     layout="wide"
 )
-)
+
 # ==========================================
 # 2. FILE PATHS
 # ==========================================
@@ -38,96 +38,101 @@ if "profile_dob" not in st.session_state:
 
 if "sessions" not in st.session_state:
     st.session_state.sessions = []
+    if "profile_notes" not in st.session_state:
+    st.session_state.profile_notes = ""
   # ==========================================
 # 4. CUSTOM DESIGN
 # ==========================================
-st.markdown(""""
-<style>
-stApp {
-    background-color: #E7EFF7;
-    color: #18344F;
-}
 
-[data-testid="stSidebar"] {
-    background-color: #CADBEC;
-}
-h1, h2, h3 {
-    color: #173B5B;
-}
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #F3F7FB !important;
+        color: #18344F !important;
+    }
 
-p, label, span {
-    color: #304F6C;
-}
+    [data-testid="stHeader"] {
+        background-color: #F3F7FB !important;
+    }
 
-.dashboard-banner {
-    background: linear-gradient(
-        120deg,
-        #173B5B,
-        #246B96
-    );
-    padding: 30px;
-    border-radius: 18px;
-    color: white;
-    margin-bottom: 25px;
-}
+    [data-testid="stSidebar"] {
+        background-color: #DCE8F2 !important;
+    }
 
-.dashboard-banner h1 {
-    color: white;
-    font-size: 34px;
-}
+    [data-testid="stSidebar"] * {
+        color: #18344F !important;
+    }
 
-.dashboard-banner p {
-    color: #E7F2FA;
-    font-size: 16px;
-}
+    h1, h2, h3, h4 {
+        color: #173B5B !important;
+    }
 
-.brand-caption {
-    color: #1B659B;
-    font-weight: 600;
-    font-size: 15px;
-}
+    p, label, li,
+    [data-testid="stMarkdownContainer"] {
+        color: #304F6C !important;
+    }
 
-div[data-testid="stMetric"] {
-    background-color: #D1E1EF;
-    border: 1px solid #BDD3E5;
-    padding: 18px;
-    border-radius: 12px;
-}
+    [data-testid="stCaptionContainer"] p {
+        color: #496984 !important;
+    }
 
-div[data-testid="stMetricValue"] {
-    color: #173B5B;
-}
+    [data-testid="stMetric"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #C8D8E7 !important;
+        border-radius: 14px !important;
+        padding: 18px !important;
+    }
 
-div[data-testid="stMetricLabel"] {
-    color: #365A78;
-}
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricLabel"] {
+        color: #173B5B !important;
+    }
 
-.stButton > button {
-    background-color: #1B659B;
-    color: white;
-    border-radius: 9px;
-    border: none;
-    padding: 8px 20px;
-}
+    input, textarea {
+        background-color: #FFFFFF !important;
+        color: #18344F !important;
+    }
 
-.stButton > button:hover {
-    background-color: #154C75;
-    color: white;
-}
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextArea"] textarea,
+    [data-testid="stNumberInput"] input {
+        background-color: #FFFFFF !important;
+        color: #18344F !important;
+        border: 1px solid #AFC4D8 !important;
+    }
 
-.stDownloadButton > button {
-    background-color: #1B659B;
-    color: white;
-}
+    .stButton button,
+    .stDownloadButton button {
+        background-color: #1B659B !important;
+        color: #FFFFFF !important;
+        border-radius: 9px !important;
+    }
 
-div[data-testid="stFileUploader"] {
-    background-color: #D7E6F2;
-    padding: 15px;
-    border-radius: 12px;
-}
+    .stButton button p,
+    .stDownloadButton button p {
+        color: #FFFFFF !important;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    [data-testid="stFileUploader"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #C8D8E7 !important;
+        border-radius: 12px !important;
+    }
+
+    [data-testid="stFileUploader"] * {
+        color: #18344F !important;
+    }
+
+    [data-testid="stAlert"] {
+        background-color: #FFFFFF !important;
+        color: #18344F !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ==========================================
@@ -526,11 +531,17 @@ elif page == "My Profile":
 
     st.header("My Profile")
 
+    st.write(
+        "Manage your personal profile and "
+        "research notes."
+    )
+
     with st.form("profile_form"):
 
         name = st.text_input(
             "Full Name",
-            value=st.session_state.profile_name
+            value=st.session_state.profile_name,
+            placeholder="Enter your full name"
         )
 
         dob = st.date_input(
@@ -538,6 +549,13 @@ elif page == "My Profile":
             value=st.session_state.profile_dob,
             min_value=date(1900, 1, 1),
             max_value=date.today()
+        )
+
+        notes = st.text_area(
+            "Additional Notes",
+            value=st.session_state.profile_notes,
+            placeholder="Add your personal or research notes...",
+            height=150
         )
 
         submitted = st.form_submit_button(
@@ -548,10 +566,9 @@ elif page == "My Profile":
 
             st.session_state.profile_name = name
             st.session_state.profile_dob = dob
+            st.session_state.profile_notes = notes
 
-            st.success(
-                "Profile saved successfully."
-            )
+            st.success("Profile saved successfully.")
 
     st.divider()
 
@@ -571,6 +588,12 @@ elif page == "My Profile":
         f"{str(age) + ' years' if age is not None else 'Not added'}"
     )
 
+    st.write("**Additional Notes:**")
+
+    if st.session_state.profile_notes.strip():
+        st.write(st.session_state.profile_notes)
+    else:
+        st.caption("No additional notes added.")
 
 # ==========================================
 # 12. RESEARCH
