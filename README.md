@@ -1,6 +1,5 @@
 
-
-# NEUROPULSE
+NEUROPULSE
 ### See the Signal. Unlock Better Care.
 
 **NEUROPULSE** is the first product under **BIOPTIQ — The Future of Vision.**
