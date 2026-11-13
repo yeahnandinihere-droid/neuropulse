@@ -11,9 +11,9 @@ import pandas as pd
 
 st.set_page_config(
     page_title="NEUROPULSE | BIOPTIQ",
-    page_icon="",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_icon="👁️",
+    layout="wide"
+)
 )
 # ==========================================
 # 2. FILE PATHS
