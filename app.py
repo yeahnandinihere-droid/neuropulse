@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent
 
 BRAND_IMAGE = (
     BASE_DIR
-    / "assets"
     / "Bioptiq and Neuropulse Identity.webp"
 )
+
 # ==========================================
 # 3. SESSION STATE
 # ==========================================
