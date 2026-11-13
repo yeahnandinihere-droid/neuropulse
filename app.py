@@ -56,148 +56,115 @@ if "video_name" not in st.session_state:
 # =====================================================
 # 4. CUSTOM DESIGN
 # =====================================================
+  st.markdown("""
+<style>
 
-st.markdown(
-    """
-    <style>
+/* Main application background */
+.stApp {
+    background-color: #F4F8FC;
+    color: #172B4D;
+}
 
-    /* Main application background */
+/* Main content */
+section.main > div {
+    background-color: #F4F8FC;
+}
 
-    .stApp {
-        background-color: #F3F7FB;
-        color: #18344F;
-    }
+/* All content blocks and containers */
+div[data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stExpander"],
+div[data-testid="stMetric"],
+div[data-testid="stForm"],
+div[data-testid="stAlert"] {
+    background-color: #FFFFFF !important;
+    border: 1px solid #DCE6F1 !important;
+    border-radius: 14px !important;
+    color: #172B4D !important;
+}
 
-    [data-testid="stHeader"] {
-        background-color: #F3F7FB;
-    }
+/* Text inside blocks */
+div[data-testid="stVerticalBlockBorderWrapper"] *,
+div[data-testid="stExpander"] *,
+div[data-testid="stMetric"] *,
+div[data-testid="stForm"] *,
+div[data-testid="stAlert"] * {
+    color: #172B4D !important;
+}
 
-    /* Sidebar */
+/* Headings */
+h1, h2, h3, h4 {
+    color: #15365B !important;
+}
 
-    [data-testid="stSidebar"] {
-        background-color: #DCE8F2;
-    }
+/* Paragraphs and labels */
+p, label, span, li {
+    color: #344B67;
+}
 
-    [data-testid="stSidebar"] * {
-        color: #18344F !important;
-    }
+/* Input fields */
+.stTextInput input,
+.stDateInput input,
+.stTextArea textarea,
+.stNumberInput input {
+    background-color: #FFFFFF !important;
+    color: #172B4D !important;
+    border: 1px solid #C9D8E8 !important;
+    border-radius: 9px !important;
+}
 
-    /* Headings */
+/* File uploader */
+div[data-testid="stFileUploader"] {
+    background-color: #FFFFFF !important;
+    border: 1px dashed #9BB9D8 !important;
+    border-radius: 12px !important;
+    padding: 15px !important;
+}
 
-    h1, h2, h3, h4 {
-        color: #173B5B !important;
-    }
+/* Dataframes */
+div[data-testid="stDataFrame"] {
+    background-color: #FFFFFF !important;
+    border-radius: 12px !important;
+}
 
-    /* General text */
+/* Buttons */
+.stButton > button {
+    background-color: #1769AA !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 9px !important;
+    font-weight: 600 !important;
+}
 
-    p, label, li {
-        color: #304F6C;
-    }
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #EAF2FA !important;
+}
 
-    [data-testid="stCaptionContainer"] p {
-        color: #496984;
-    }
+section[data-testid="stSidebar"] * {
+    color: #173B60 !important;
+}
 
-    /* Metrics */
+/* Captions */
+.stCaption {
+    color: #61758C !important;
+}
 
-    [data-testid="stMetric"] {
-        background-color: #FFFFFF;
-        border: 1px solid #C8D8E7;
-        border-radius: 14px;
-        padding: 18px;
-    }
+/* Remove dark code block backgrounds */
+.stCode,
+pre,
+code {
+    background-color: #F0F4F8 !important;
+    color: #173B60 !important;
+}
 
-    [data-testid="stMetricValue"],
-    [data-testid="stMetricLabel"] {
-        color: #173B5B !important;
-    }
+/* Download buttons */
+.stDownloadButton > button {
+    background-color: #1769AA !important;
+    color: white !important;
+}
 
-    /* Text inputs */
-
-    [data-testid="stTextInput"] input,
-    [data-testid="stTextArea"] textarea,
-    [data-testid="stNumberInput"] input {
-        background-color: #FFFFFF !important;
-        color: #18344F !important;
-        border: 1px solid #AFC4D8 !important;
-    }
-
-    /* Date input */
-
-    [data-testid="stDateInput"] input {
-        background-color: #FFFFFF !important;
-        color: #18344F !important;
-    }
-
-    /* Buttons */
-
-    .stButton button,
-    .stDownloadButton button {
-        background-color: #1B659B;
-        color: #FFFFFF !important;
-        border: none;
-        border-radius: 9px;
-        min-height: 42px;
-    }
-
-    .stButton button p,
-    .stDownloadButton button p {
-        color: #FFFFFF !important;
-    }
-
-    .stButton button:hover,
-    .stDownloadButton button:hover {
-        background-color: #144B75;
-        border: none;
-    }
-
-    /* File uploader */
-
-    [data-testid="stFileUploader"] {
-        background-color: #FFFFFF;
-        border: 1px solid #C8D8E7;
-        border-radius: 12px;
-        padding: 12px;
-    }
-
-    [data-testid="stFileUploader"] * {
-        color: #18344F !important;
-    }
-
-    /* Alerts */
-
-    [data-testid="stAlert"] {
-        background-color: #FFFFFF;
-        color: #18344F;
-        border-radius: 10px;
-    }
-
-    /* Dividers */
-
-    hr {
-        border-color: #C8D8E7;
-    }
-
-    /* Form containers */
-
-    [data-testid="stForm"] {
-        background-color: #FFFFFF;
-        border: 1px solid #D5E1EC;
-        border-radius: 14px;
-        padding: 20px;
-    }
-
-    /* Data tables */
-
-    [data-testid="stDataFrame"] {
-        background-color: #FFFFFF;
-        border-radius: 10px;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+</style>
+""", unsafe_allow_html=True)  
 
 
 # =====================================================
