@@ -22,7 +22,7 @@ st.set_page_config(
 
 
 # --------------------------------------------------
-# 2. SESSION STATE INITIALIZATION
+# 2. SESSION STATE
 # --------------------------------------------------
 
 if "profile_name" not in st.session_state:
@@ -40,29 +40,23 @@ if "sessions" not in st.session_state:
 if "video_inspection" not in st.session_state:
     st.session_state.video_inspection = None
 
-if "video_name" not in st.session_state:
-    st.session_state.video_name = ""
-
 
 # --------------------------------------------------
-# 3. CUSTOM LIGHT THEME
+# 3. LIGHT THEME
 # --------------------------------------------------
 
 st.markdown("""
 <style>
 
-/* Main application background */
 .stApp {
     background-color: #F4F8FC;
     color: #243B53;
 }
 
-/* Main content area */
 [data-testid="stAppViewContainer"] {
     background-color: #F4F8FC;
 }
 
-/* Sidebar */
 section[data-testid="stSidebar"] {
     background-color: #EAF2FA;
     border-right: 1px solid #D8E4F0;
@@ -72,17 +66,14 @@ section[data-testid="stSidebar"] * {
     color: #173B60 !important;
 }
 
-/* Main headings */
 h1, h2, h3, h4 {
     color: #173B60 !important;
 }
 
-/* Paragraphs */
 p, li {
     color: #40566F;
 }
 
-/* Metric cards */
 div[data-testid="stMetric"] {
     background-color: #FFFFFF !important;
     border: 1px solid #DCE6F1 !important;
@@ -90,29 +81,23 @@ div[data-testid="stMetric"] {
     padding: 16px !important;
 }
 
-/* Metric text */
 div[data-testid="stMetric"] label,
-div[data-testid="stMetric"] [data-testid="stMetricValue"],
-div[data-testid="stMetric"] [data-testid="stMetricDelta"] {
+div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     color: #173B60 !important;
 }
 
-/* General bordered containers */
-div[data-testid="stVerticalBlockBorderWrapper"] {
+div[data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stForm"],
+div[data-testid="stExpander"] {
     background-color: #FFFFFF !important;
     border: 1px solid #DCE6F1 !important;
     border-radius: 13px !important;
 }
 
-/* Forms */
 div[data-testid="stForm"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #DCE6F1 !important;
-    border-radius: 13px !important;
     padding: 18px !important;
 }
 
-/* Text inputs */
 .stTextInput input,
 .stDateInput input,
 .stTextArea textarea,
@@ -123,15 +108,12 @@ div[data-testid="stForm"] {
     border-radius: 8px !important;
 }
 
-/* Input labels */
 .stTextInput label,
 .stDateInput label,
-.stTextArea label,
-.stNumberInput label {
+.stTextArea label {
     color: #344B67 !important;
 }
 
-/* File uploader */
 div[data-testid="stFileUploader"] {
     background-color: #FFFFFF !important;
     border: 1px dashed #A9C1D9 !important;
@@ -139,7 +121,6 @@ div[data-testid="stFileUploader"] {
     padding: 15px !important;
 }
 
-/* Buttons */
 .stButton > button,
 .stDownloadButton > button,
 .stFormSubmitButton > button {
@@ -148,121 +129,61 @@ div[data-testid="stFileUploader"] {
     border: none !important;
     border-radius: 8px !important;
     font-weight: 600 !important;
-    padding: 8px 18px !important;
 }
 
-/* Button hover */
 .stButton > button:hover,
-.stDownloadButton > button:hover,
-.stFormSubmitButton > button:hover {
+.stDownloadButton > button:hover {
     background-color: #12558C !important;
     color: #FFFFFF !important;
 }
 
-/* Dataframes */
 div[data-testid="stDataFrame"] {
     background-color: #FFFFFF !important;
     border-radius: 10px !important;
 }
 
-/* Alerts */
 div[data-testid="stAlert"] {
     background-color: #FFFFFF !important;
     border-radius: 10px !important;
 }
 
-/* Expander */
-div[data-testid="stExpander"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #DCE6F1 !important;
-    border-radius: 10px !important;
-}
-
-/* Select boxes */
 div[data-baseweb="select"] > div {
     background-color: #FFFFFF !important;
     color: #173B60 !important;
-    border-color: #C9D8E8 !important;
 }
 
-/* Captions */
 .stCaption {
     color: #71849A !important;
 }
 
-/* Branding header */
 .brand-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #FFFFFF;
-    border: 1px solid #DCE6F1;
-    border-radius: 14px;
-    padding: 17px 23px;
-    margin-bottom: 28px;
+    padding: 12px 0 18px 0;
+    border-bottom: 1px solid #DCE6F1;
+    margin-bottom: 25px;
 }
 
-.product-name {
+.brand-product {
     color: #1769AA;
-    font-size: 26px;
+    font-size: 25px;
     font-weight: 800;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
 }
 
-.product-tagline {
-    color: #61758C;
-    font-size: 10px;
-    letter-spacing: 1.2px;
-    margin-top: 4px;
-}
-
-.parent-brand {
-    text-align: right;
-}
-
-.parent-name {
+.brand-company {
     color: #173B60;
     font-size: 18px;
     font-weight: 800;
     letter-spacing: 2px;
 }
 
-.parent-caption {
-    color: #61758C;
-    font-size: 10px;
-    letter-spacing: 1px;
-    margin-top: 4px;
-}
-
-/* Footer */
 .app-footer {
     text-align: center;
     color: #8193A8;
     font-size: 12px;
     padding: 25px 0 10px 0;
-}
-
-/* Mobile branding */
-@media (max-width: 600px) {
-    .brand-header {
-        padding: 13px;
-    }
-
-    .product-name {
-        font-size: 19px;
-    }
-
-    .product-tagline {
-        font-size: 8px;
-    }
-
-    .parent-name {
-        font-size: 14px;
-    }
-
-    .parent-caption {
-        font-size: 8px;
-    }
 }
 
 </style>
@@ -273,25 +194,23 @@ div[data-baseweb="select"] > div {
 # 4. BRAND HEADER
 # --------------------------------------------------
 
-st.markdown("""
-<div class="brand-header">
+brand_left, brand_right = st.columns([3, 1])
 
-    <div class="product-brand">
-        <div class="product-name">NEUROPULSE</div>
-        <div class="product-tagline">
-            SEE THE SIGNAL. UNLOCK BETTER CARE.
-        </div>
-    </div>
+with brand_left:
+    st.markdown(
+        "<h2 style='color:#1769AA; letter-spacing:2px;'>"
+        "NEUROPULSE</h2>",
+        unsafe_allow_html=True
+    )
 
-    <div class="parent-brand">
-        <div class="parent-name">BIOPTIQ</div>
-        <div class="parent-caption">
-            THE FUTURE OF VISION.
-        </div>
-    </div>
+with brand_right:
+    st.markdown(
+        "<h3 style='text-align:right; color:#173B60;'>"
+        "BIOPTIQ</h3>",
+        unsafe_allow_html=True
+    )
 
-</div>
-""", unsafe_allow_html=True)
+st.divider()
 
 
 # --------------------------------------------------
@@ -299,6 +218,7 @@ st.markdown("""
 # --------------------------------------------------
 
 def calculate_age(dob):
+
     today = date.today()
 
     age = today.year - dob.year
@@ -315,10 +235,8 @@ def inspect_video(video_bytes, filename):
     capture = None
 
     try:
-        suffix = Path(filename).suffix
 
-        if not suffix:
-            suffix = ".mp4"
+        suffix = Path(filename).suffix or ".mp4"
 
         with tempfile.NamedTemporaryFile(
             delete=False,
@@ -347,23 +265,20 @@ def inspect_video(video_bytes, filename):
             capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
         )
 
-        if fps and fps > 0:
-            duration = frame_count / fps
-        else:
-            duration = 0
+        duration = frame_count / fps if fps > 0 else 0
 
         frames = []
 
         if frame_count > 0:
 
-            sample_positions = np.linspace(
+            positions = np.linspace(
                 0,
-                max(frame_count - 1, 0),
+                frame_count - 1,
                 min(6, frame_count),
                 dtype=int
             )
 
-            for position in sample_positions:
+            for position in positions:
 
                 capture.set(
                     cv2.CAP_PROP_POS_FRAMES,
@@ -373,6 +288,7 @@ def inspect_video(video_bytes, filename):
                 success, frame = capture.read()
 
                 if success:
+
                     frame = cv2.cvtColor(
                         frame,
                         cv2.COLOR_BGR2RGB
@@ -409,7 +325,7 @@ def inspect_video(video_bytes, filename):
 # 6. SIDEBAR NAVIGATION
 # --------------------------------------------------
 
-st.sidebar.markdown("## NEUROPULSE")
+st.sidebar.title("NEUROPULSE")
 
 st.sidebar.caption("Clinical Visual Assessment Platform")
 
@@ -433,7 +349,7 @@ st.sidebar.caption("BIOPTIQ | The Future of Vision.")
 
 
 # --------------------------------------------------
-# 7. OVERVIEW PAGE
+# 7. OVERVIEW
 # --------------------------------------------------
 
 if page == "Overview":
@@ -452,10 +368,7 @@ if page == "Overview":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric(
-            "Platform",
-            "NEUROPULSE"
-        )
+        st.metric("Platform", "NEUROPULSE")
 
     with col2:
         st.metric(
@@ -482,16 +395,9 @@ if page == "Overview":
             st.subheader("Pupil Check")
 
             st.write(
-                "Upload a video and inspect its basic technical "
-                "properties and selected frames."
+                "Upload and inspect videos, review metadata "
+                "and visualize selected frames."
             )
-
-            if st.button(
-                "Open Pupil Check",
-                key="overview_pupil"
-            ):
-                st.session_state.selected_page = "Pupil Check"
-                st.rerun()
 
     with col2:
 
@@ -500,25 +406,17 @@ if page == "Overview":
             st.subheader("Sessions")
 
             st.write(
-                "Create and review your assessment session records."
+                "Create and review assessment session records."
             )
 
-            if st.button(
-                "Open Sessions",
-                key="overview_sessions"
-            ):
-                st.session_state.selected_page = "Sessions"
-                st.rerun()
-
     st.info(
-        "NEUROPULSE is currently a research and development "
-        "platform. Video inspection does not yet perform "
-        "validated pupil detection or clinical diagnosis."
+        "Automated pupil detection and clinical measurements "
+        "are not yet implemented."
     )
 
 
 # --------------------------------------------------
-# 8. PUPIL CHECK PAGE
+# 8. PUPIL CHECK
 # --------------------------------------------------
 
 elif page == "Pupil Check":
@@ -526,40 +424,31 @@ elif page == "Pupil Check":
     st.title("Pupil Check")
 
     st.write(
-        "Upload a video for basic video inspection and "
-        "sample-frame visualization."
+        "Upload a video for technical inspection "
+        "and sample-frame visualization."
     )
 
     st.info(
-        "Current functionality: video metadata inspection "
-        "and frame extraction. Automated pupil detection "
-        "and measurement are not yet implemented."
+        "Current functionality includes video metadata "
+        "inspection and frame extraction. Automated pupil "
+        "detection is not yet implemented."
     )
 
     uploaded_video = st.file_uploader(
         "Upload a video",
-        type=["mp4", "avi", "mov", "mkv"],
-        key="pupil_video"
+        type=["mp4", "avi", "mov", "mkv"]
     )
 
     if uploaded_video is not None:
 
-        st.write(
-            f"**Selected file:** {uploaded_video.name}"
-        )
+        st.write(f"Selected file: {uploaded_video.name}")
 
-        if st.button(
-            "Inspect Video",
-            type="primary",
-            key="inspect_video"
-        ):
+        if st.button("Inspect Video", type="primary"):
 
             with st.spinner("Inspecting video..."):
 
-                video_bytes = uploaded_video.getvalue()
-
                 result, error = inspect_video(
-                    video_bytes,
+                    uploaded_video.getvalue(),
                     uploaded_video.name
                 )
 
@@ -568,11 +457,7 @@ elif page == "Pupil Check":
 
                 else:
                     st.session_state.video_inspection = result
-                    st.session_state.video_name = uploaded_video.name
-
-                    st.success(
-                        "Video inspection completed."
-                    )
+                    st.success("Video inspection completed.")
 
     result = st.session_state.video_inspection
 
@@ -607,16 +492,11 @@ elif page == "Pupil Check":
         col4, col5 = st.columns(2)
 
         with col4:
-            st.metric(
-                "Total Frames",
-                result["frame_count"]
-            )
+            st.metric("Total Frames", result["frame_count"])
 
         with col5:
-            st.metric(
-                "File",
-                result["filename"]
-            )
+            st.write("**File Name**")
+            st.write(result["filename"])
 
         st.divider()
 
@@ -638,22 +518,18 @@ elif page == "Pupil Check":
 
         else:
 
-            st.warning(
-                "No frames could be extracted from this video."
-            )
+            st.warning("No frames could be extracted.")
 
 
 # --------------------------------------------------
-# 9. SESSIONS PAGE
+# 9. SESSIONS
 # --------------------------------------------------
 
 elif page == "Sessions":
 
     st.title("Assessment Sessions")
 
-    st.write(
-        "Create and manage your session records."
-    )
+    st.write("Create and manage your session records.")
 
     with st.form("session_form"):
 
@@ -667,9 +543,7 @@ elif page == "Sessions":
             value=date.today()
         )
 
-        submitted = st.form_submit_button(
-            "Save Session"
-        )
+        submitted = st.form_submit_button("Save Session")
 
         if submitted:
 
@@ -680,15 +554,11 @@ elif page == "Sessions":
                     "Date": session_date.strftime("%Y-%m-%d")
                 })
 
-                st.success(
-                    "Session saved successfully."
-                )
+                st.success("Session saved successfully.")
 
             else:
 
-                st.warning(
-                    "Please enter a session name."
-                )
+                st.warning("Please enter a session name.")
 
     st.divider()
 
@@ -711,7 +581,7 @@ elif page == "Sessions":
         ).encode("utf-8")
 
         st.download_button(
-            label="Download Session Records",
+            "Download Session Records",
             data=csv_data,
             file_name="neuropulse_sessions.csv",
             mime="text/csv"
@@ -719,22 +589,18 @@ elif page == "Sessions":
 
     else:
 
-        st.info(
-            "No sessions have been recorded yet."
-        )
+        st.info("No sessions have been recorded yet.")
 
 
 # --------------------------------------------------
-# 10. MY PROFILE PAGE
+# 10. MY PROFILE
 # --------------------------------------------------
 
 elif page == "My Profile":
 
     st.title("My Profile")
 
-    st.write(
-        "Manage your personal profile information."
-    )
+    st.write("Manage your personal profile information.")
 
     with st.form("profile_form"):
 
@@ -753,12 +619,10 @@ elif page == "My Profile":
         profile_notes = st.text_area(
             "Additional Notes",
             value=st.session_state.profile_notes,
-            placeholder="Enter any additional notes..."
+            placeholder="Enter additional notes..."
         )
 
-        profile_submitted = st.form_submit_button(
-            "Save Profile"
-        )
+        profile_submitted = st.form_submit_button("Save Profile")
 
         if profile_submitted:
 
@@ -766,9 +630,7 @@ elif page == "My Profile":
             st.session_state.profile_dob = profile_dob
             st.session_state.profile_notes = profile_notes
 
-            st.success(
-                "Profile updated successfully."
-            )
+            st.success("Profile updated successfully.")
 
     st.divider()
 
@@ -776,9 +638,7 @@ elif page == "My Profile":
 
     if st.session_state.profile_name:
 
-        st.write(
-            f"**Name:** {st.session_state.profile_name}"
-        )
+        st.write(f"**Name:** {st.session_state.profile_name}")
 
         st.write(
             f"**Date of Birth:** "
@@ -786,26 +646,22 @@ elif page == "My Profile":
         )
 
         st.write(
-            f"**Age:** {calculate_age(st.session_state.profile_dob)} years"
+            f"**Age:** "
+            f"{calculate_age(st.session_state.profile_dob)} years"
         )
 
         if st.session_state.profile_notes:
 
             st.write("**Additional Notes:**")
-
-            st.write(
-                st.session_state.profile_notes
-            )
+            st.write(st.session_state.profile_notes)
 
     else:
 
-        st.info(
-            "Your profile has not been completed yet."
-        )
+        st.info("Your profile has not been completed yet.")
 
 
 # --------------------------------------------------
-# 11. RESEARCH PAGE
+# 11. RESEARCH
 # --------------------------------------------------
 
 elif page == "Research":
@@ -813,9 +669,8 @@ elif page == "Research":
     st.title("Research and Development")
 
     st.write(
-        "NEUROPULSE is being developed as a research-oriented "
-        "platform exploring visual signals and their potential "
-        "role in neurological assessment."
+        "NEUROPULSE explores visual signals and their "
+        "potential role in neurological assessment."
     )
 
     st.divider()
@@ -824,7 +679,7 @@ elif page == "Research":
 
     with st.container(border=True):
 
-        st.markdown("### 1. Pupil Assessment")
+        st.markdown("### Pupil Assessment")
 
         st.write(
             "Exploring image and video-based pupil assessment "
@@ -833,7 +688,7 @@ elif page == "Research":
 
     with st.container(border=True):
 
-        st.markdown("### 2. Visual Signal Analysis")
+        st.markdown("### Visual Signal Analysis")
 
         st.write(
             "Investigating measurable visual signals and "
@@ -842,27 +697,27 @@ elif page == "Research":
 
     with st.container(border=True):
 
-        st.markdown("### 3. Clinical Research Integration")
+        st.markdown("### Clinical Research Integration")
 
         st.write(
-            "Exploring how computational methods could support "
-            "future clinical research and assessment workflows."
+            "Exploring computational methods that could support "
+            "future clinical research workflows."
         )
 
     st.divider()
 
-    st.subheader("Development Status")
+    st.subheader("Current Development Status")
 
     st.write(
-        "The current version supports video metadata inspection, "
-        "sample-frame extraction, session recording and profile "
-        "management. Research validation and further development "
+        "The current version supports video inspection, "
+        "sample-frame extraction, session recording and "
+        "profile management. Further research and validation "
         "are required before clinical use."
     )
 
 
 # --------------------------------------------------
-# 12. ABOUT PAGE
+# 12. ABOUT
 # --------------------------------------------------
 
 elif page == "About":
@@ -881,27 +736,21 @@ elif page == "About":
 
     st.subheader("Developed Under")
 
-    st.markdown(
-        """
-        **BIOPTIQ**
+    st.markdown("**BIOPTIQ**")
 
-        The Future of Vision.
-        """
-    )
+    st.write("The Future of Vision.")
 
     st.divider()
 
     st.subheader("Current Capabilities")
 
-    st.markdown(
-        """
-        - Video upload and inspection
-        - Video metadata extraction
-        - Sample-frame visualization
-        - Assessment session records
-        - User profile management
-        """
-    )
+    st.markdown("""
+    - Video upload and inspection
+    - Video metadata extraction
+    - Sample-frame visualization
+    - Assessment session records
+    - User profile management
+    """)
 
     st.divider()
 
@@ -920,10 +769,8 @@ elif page == "About":
 # 13. FOOTER
 # --------------------------------------------------
 
-st.markdown("""
-<div class="app-footer">
-    NEUROPULSE · A BIOPTIQ PRODUCT
-    <br>
-    The Future of Vision.
-</div>
-""", unsafe_allow_html=True)
+st.markdown("---")
+
+st.caption(
+    "NEUROPULSE · A BIOPTIQ PRODUCT · The Future of Vision."
+)
