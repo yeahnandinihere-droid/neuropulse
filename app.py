@@ -879,3 +879,328 @@ elif page == "Sessions":
     if st.session_state.sessions:
 
         sessions_df = pd.DataFrame(
+            st.session_state.sessions
+        )
+
+        st.dataframe(
+            sessions_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        csv_data = sessions_df.to_csv(
+            index=False
+        ).encode("utf-8")
+
+        st.download_button(
+            "Export Session Records",
+            data=csv_data,
+            file_name="neuropulse_sessions.csv",
+            mime="text/csv"
+        )
+
+        # --------------------------------------------------
+        # FOLLOW-UP ASSESSMENT & COMPARISON
+        # --------------------------------------------------
+        st.divider()
+        st.markdown("### Follow-Up Assessment & Comparison")
+
+        comparable_records = [
+            (idx, s) for idx, s in enumerate(st.session_state.sessions)
+            if s.get("Wellness Index") is not None
+        ]
+
+        if len(comparable_records) >= 2:
+
+            option_labels = [
+                f"#{idx + 1}: {s['Session Name']} ({s['Date']})"
+                for idx, s in comparable_records
+            ]
+
+            comp_col1, comp_col2 = st.columns(2)
+
+            with comp_col1:
+                baseline_choice = st.selectbox(
+                    "Baseline Session",
+                    options=range(len(comparable_records)),
+                    index=0,
+                    format_func=lambda i: option_labels[i]
+                )
+
+            with comp_col2:
+                followup_choice = st.selectbox(
+                    "Follow-Up Session",
+                    options=range(len(comparable_records)),
+                    index=len(comparable_records) - 1,
+                    format_func=lambda i: option_labels[i]
+                )
+
+            base_s = comparable_records[baseline_choice][1]
+            foll_s = comparable_records[followup_choice][1]
+
+            d_wellness = round(foll_s["Wellness Index"] - base_s["Wellness Index"], 1)
+            d_quality = round(foll_s["Recording Quality"] - base_s["Recording Quality"], 1)
+            d_detection = round(foll_s["Detection Score"] - base_s["Detection Score"], 1)
+            d_angle = round(foll_s["Mean Angle (deg)"] - base_s["Mean Angle (deg)"], 2)
+            d_ratio = round(foll_s["Mean Pupil Ratio (%)"] - base_s["Mean Pupil Ratio (%)"], 2)
+
+            m1, m2, m3, m4, m5 = st.columns(5)
+
+            with m1:
+                st.metric(
+                    "Wellness Index",
+                    f"{foll_s['Wellness Index']}/100",
+                    delta=f"{d_wellness:+.1f}"
+                )
+
+            with m2:
+                st.metric(
+                    "Recording Quality",
+                    f"{foll_s['Recording Quality']}/100",
+                    delta=f"{d_quality:+.1f}"
+                )
+
+            with m3:
+                st.metric(
+                    "Detection Score",
+                    f"{foll_s['Detection Score']}/100",
+                    delta=f"{d_detection:+.1f}"
+                )
+
+            with m4:
+                st.metric(
+                    "Mean Angle",
+                    f"{foll_s['Mean Angle (deg)']}°",
+                    delta=f"{d_angle:+.2f}°",
+                    delta_color="inverse"
+                )
+
+            with m5:
+                st.metric(
+                    "Pupil Ratio",
+                    f"{foll_s['Mean Pupil Ratio (%)']}%",
+                    delta=f"{d_ratio:+.2f}%",
+                    delta_color="off"
+                )
+
+            # Longitudinal interpretation note
+            if abs(d_quality) >= 20.0:
+                st.warning(
+                    f"Capture quality changed by {d_quality:+.1f} points between sessions. "
+                    "Ensure similar lighting and camera distance before attributing metric shifts to physiological change."
+                )
+            elif d_wellness >= 5.0 and d_angle <= 0:
+                st.success(
+                    f"Follow-up shows improved Vision Wellness Index ({d_wellness:+.1f}) and stable/improved gaze-axis alignment ({d_angle:+.2f}°)."
+                )
+            elif d_wellness <= -5.0 or d_angle >= 3.0:
+                st.warning(
+                    f"Follow-up indicates reduced Vision Wellness Index ({d_wellness:+.1f}) or increased angular offset ({d_angle:+.2f}°). "
+                    "Verify lighting conditions and consider an optometric review if persistent."
+                )
+            else:
+                st.info(
+                    "Follow-up metrics remain consistent with your baseline session within expected capture variance."
+                )
+
+        else:
+            st.caption(
+                "Save at least two Pupil Check assessments to unlock side-by-side follow-up comparison."
+            )
+
+    else:
+
+        st.caption("No assessment sessions recorded yet.")
+
+
+# ==================================================
+# MY PROFILE
+# ==================================================
+
+elif page == "My Profile":
+
+    st.title("My Profile")
+
+    st.write(
+        "Manage your profile information."
+    )
+
+    st.markdown("### Profile Details")
+
+    with st.form("profile_form"):
+
+        profile_name = st.text_input(
+            "Full Name",
+            value=st.session_state.profile_name
+        )
+
+        profile_dob = st.date_input(
+            "Date of Birth",
+            value=st.session_state.profile_dob,
+            max_value=date.today()
+        )
+
+        profile_notes = st.text_area(
+            "Additional Notes",
+            value=st.session_state.profile_notes,
+            placeholder="Enter additional notes (e.g., corrective lenses, screen hours, lighting setup)..."
+        )
+
+        submitted = st.form_submit_button(
+            "Save Profile"
+        )
+
+        if submitted:
+
+            st.session_state.profile_name = profile_name
+            st.session_state.profile_dob = profile_dob
+            st.session_state.profile_notes = profile_notes
+
+            st.success("Profile updated.")
+
+    st.divider()
+
+    st.markdown("### Profile Summary")
+
+    if st.session_state.profile_name:
+
+        st.write(
+            f"**Name:** {st.session_state.profile_name}"
+        )
+
+        st.write(
+            f"**Date of Birth:** "
+            f"{st.session_state.profile_dob.strftime('%d %B %Y')}"
+        )
+
+        st.write(
+            f"**Age:** "
+            f"{calculate_age(st.session_state.profile_dob)} years"
+        )
+
+        if st.session_state.profile_notes:
+
+            st.write("**Additional Notes:**")
+
+            st.write(st.session_state.profile_notes)
+
+    else:
+
+        st.caption("Complete your profile to see your summary.")
+
+
+# ==================================================
+# RESEARCH
+# ==================================================
+
+elif page == "Research":
+
+    st.title("Research and Development")
+
+    st.write(
+        "Exploring visual signals, Vision Wellness Intelligence, and their "
+        "potential applications in neurological assessment."
+    )
+
+    st.divider()
+
+    st.markdown("### Research Directions")
+
+    st.subheader("01 — Pupil Detection & Angle Assessment")
+
+    st.write(
+        "Deterministic computer-vision estimation of pupil geometry, relative radius "
+        "dynamics, and gaze-axis angular deviation across sequential video frames."
+    )
+
+    st.divider()
+
+    st.subheader("02 — Signal Quality Separation")
+
+    st.write(
+        "Decoupling recording quality metrics (illumination, contrast, sharpness) from "
+        "biological detection confidence to prevent capture artifacts from skewing wellness insights."
+    )
+
+    st.divider()
+
+    st.subheader("03 — Longitudinal Vision Wellness Intelligence")
+
+    st.write(
+        "Structured baseline-to-follow-up comparison and tiered referral guidance to "
+        "support preventive eye care and clinical research workflows."
+    )
+
+    st.divider()
+
+    st.markdown("### Development Status")
+
+    st.write(
+        "The current version supports video inspection, sample-frame extraction, "
+        "pupil and angle overlays, separated recording-quality and detection scoring, "
+        "Vision Wellness Intelligence, referral guidance, and follow-up comparison."
+    )
+
+    st.caption(
+        "Further research and clinical validation are required "
+        "before medical or diagnostic application."
+    )
+
+
+# ==================================================
+# ABOUT
+# ==================================================
+
+elif page == "About":
+
+    st.title("About NEUROPULSE")
+
+    st.subheader("See the Signal. Unlock Better Care.")
+
+    st.write(
+        "NEUROPULSE is a research-oriented healthcare "
+        "technology platform exploring visual assessment, Vision Wellness "
+        "Intelligence, and neurological signal analysis."
+    )
+
+    st.divider()
+
+    st.markdown("### Parent Company")
+
+    st.subheader("BIOPTIQ")
+
+    st.write("The Future of Vision.")
+
+    st.divider()
+
+    st.markdown("### Current Capabilities")
+
+    st.write("Video upload, metadata extraction, and frame visualization")
+    st.write("Pupil detection and gaze-axis angle assessment")
+    st.write("Separated recording-quality and pupil-detection scoring")
+    st.write("Vision Wellness Intelligence recommendations and referral guidance")
+    st.write("Assessment session records and longitudinal follow-up comparison")
+    st.write("Profile management")
+
+    st.divider()
+
+    st.markdown("### Research Disclaimer")
+
+    st.write(
+        "NEUROPULSE is an early-stage research and development "
+        "prototype. It is not a medical device and does not "
+        "provide medical diagnosis, treatment recommendations "
+        "or validated clinical measurements. It should not "
+        "be used to make clinical decisions."
+    )
+
+
+# ==================================================
+# FOOTER
+# ==================================================
+
+st.divider()
+
+st.caption(
+    "NEUROPULSE  |  A BIOPTIQ PRODUCT  |  The Future of Vision."
+)
