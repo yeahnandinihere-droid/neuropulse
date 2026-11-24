@@ -29,7 +29,8 @@ defaults = {
     "profile_dob": date.today(),
     "profile_notes": "",
     "sessions": [],
-    "video_inspection": None
+    "video_inspection": None,
+    "live_captures": []
 }
 
 for key, value in defaults.items():
@@ -78,7 +79,7 @@ st.sidebar.markdown("### DEVELOPMENT")
 
 st.sidebar.caption("Research and Development")
 
-st.sidebar.caption("Version 0.2 — Vision Wellness Intelligence")
+st.sidebar.caption("Version 0.3 — Direct Live Capture & Vision Wellness")
 
 st.sidebar.markdown("---")
 
@@ -130,11 +131,8 @@ def analyze_frame_metrics(frame_rgb):
     contrast = float(np.std(gray))
     sharpness = float(cv2.Laplacian(gray, cv2.CV_64F).var())
 
-    # Ideal brightness centered around ~115 (range 55-185)
     brightness_score = max(0.0, 100.0 - abs(brightness - 115.0) * 1.1)
-    # Ideal contrast >= 40
     contrast_score = min(100.0, (contrast / 45.0) * 100.0)
-    # Ideal sharpness >= 120
     sharpness_score = min(100.0, (sharpness / 140.0) * 100.0)
 
     recording_quality_score = round(
@@ -143,7 +141,6 @@ def analyze_frame_metrics(frame_rgb):
     )
 
     # --- 2. Pupil Detection & Angle Assessment ---
-    # Focus on central region of interest to minimize background false positives
     roi_x1, roi_y1 = int(w * 0.15), int(h * 0.15)
     roi_x2, roi_y2 = int(w * 0.85), int(h * 0.85)
     roi_gray = gray[roi_y1:roi_y2, roi_x1:roi_x2]
@@ -166,9 +163,20 @@ def analyze_frame_metrics(frame_rgb):
     annotated = frame_rgb.copy()
     frame_cx, frame_cy = w / 2.0, h / 2.0
 
-    # Draw subtle alignment crosshair at frame center
-    cv2.line(annotated, (int(frame_cx) - 12, int(frame_cy)), (int(frame_cx) + 12, int(frame_cy)), (140, 160, 180), 1)
-    cv2.line(annotated, (int(frame_cx), int(frame_cy) - 12), (int(frame_cx), int(frame_cy) + 12), (140, 160, 180), 1)
+    cv2.line(
+        annotated,
+        (int(frame_cx) - 12, int(frame_cy)),
+        (int(frame_cx) + 12, int(frame_cy)),
+        (140, 160, 180),
+        1
+    )
+    cv2.line(
+        annotated,
+        (int(frame_cx), int(frame_cy) - 12),
+        (int(frame_cx), int(frame_cy) + 12),
+        (140, 160, 180),
+        1
+    )
 
     pupil_detected = False
     detection_score = 0.0
@@ -178,7 +186,6 @@ def analyze_frame_metrics(frame_rgb):
 
     if circles is not None:
         candidates = np.round(circles[0, :]).astype("int")
-        # Select candidate closest to center with darkest interior intensity (pupil characteristic)
         best_candidate = None
         best_rank = -1e9
 
@@ -210,25 +217,20 @@ def analyze_frame_metrics(frame_rgb):
             pupil_radius_px = float(r)
             pupil_ratio_pct = round((r / max(1.0, min(h, w))) * 100.0, 2)
 
-            # Compute angular deviation vector from optical frame center (degrees)
             dx = cx - frame_cx
-            dy = frame_cy - cy  # Invert y so upward gaze is positive
-            # Approximate angular displacement assuming ~45 deg horizontal FOV
+            dy = frame_cy - cy
             fov_deg = 45.0
             radial_px = np.hypot(dx, dy)
             gaze_angle_deg = round((radial_px / max(1.0, w)) * fov_deg, 2)
 
-            # Detection confidence score based on pupil-iris contrast delta & centrality
             contrast_conf = min(100.0, max(20.0, (darkness_delta / 45.0) * 100.0))
             centrality_conf = max(25.0, 100.0 - norm_dist * 80.0)
             detection_score = round(0.65 * contrast_conf + 0.35 * centrality_conf, 1)
 
-            # Annotate detected pupil and alignment vector
             cv2.circle(annotated, (cx, cy), r, (0, 220, 150), 2)
             cv2.circle(annotated, (cx, cy), 3, (255, 90, 90), -1)
             cv2.line(annotated, (int(frame_cx), int(frame_cy)), (cx, cy), (255, 200, 0), 2)
     else:
-        # Fallback dark-centroid estimation if Hough circle threshold is missed
         thresh_val = max(25, int(np.percentile(roi_gray, 8)))
         _, thresh = cv2.threshold(blurred, thresh_val, 255, cv2.THRESH_BINARY_INV)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -305,7 +307,6 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
         mean_angle_deg = 0.0
         angle_drift_deg = 0.0
 
-    # Composite Vision Wellness Index (weighted toward stable angle & reliable detection)
     angle_stability_score = max(0.0, 100.0 - (mean_angle_deg * 3.5 + angle_drift_deg * 2.5))
     dynamics_balance_score = max(0.0, 100.0 - abs(pupil_variability - 0.8) * 18.0)
 
@@ -319,7 +320,6 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
     else:
         wellness_index = 0.0
 
-    # Quality Tier Classification
     if avg_rec_quality >= 75:
         quality_tier = "Optimal Capture Quality"
     elif avg_rec_quality >= 50:
@@ -327,7 +327,6 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
     else:
         quality_tier = "Low Capture Quality — Recapture Recommended"
 
-    # Detection Reliability Tier
     if avg_detection_score >= 70:
         detection_tier = "High Detection Confidence"
     elif avg_detection_score >= 40:
@@ -335,7 +334,6 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
     else:
         detection_tier = "Low / Unreliable Pupil Lock"
 
-    # Referral Guidance & Wellness Recommendations
     recommendations = []
     if avg_rec_quality < 60:
         recommendations.append(
@@ -350,7 +348,6 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
             "High inter-frame pupil size fluctuation detected—avoid variable screen glare or shifting ambient light during recording."
         )
 
-    # Standard preventive ocular wellness guidance
     recommendations.append(
         "Follow the 20-20-20 visual recovery rule (every 20 minutes, look 20 feet away for 20 seconds) to reduce accommodative fatigue."
     )
@@ -363,7 +360,6 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
             "Maintain consistent ambient lighting during prolonged near-work and track baseline recordings under identical lighting conditions."
         )
 
-    # Referral Triage Logic (strictly gated by Recording Quality & Detection Confidence)
     if avg_rec_quality < 45 or avg_detection_score < 35:
         referral_level = "Recapture Required Before Guidance"
         referral_summary = (
@@ -411,6 +407,44 @@ def generate_vision_wellness_intelligence(frame_metrics_list, profile_age=None):
     }
 
 
+def analyze_frame_sequence(frames_rgb, source_label="Live Camera Sequence", fps=0.0, total_frames=None, profile_age=None):
+    """
+    Shared analysis pipeline for both Live Camera Capture and Uploaded Video.
+    """
+    if not frames_rgb:
+        return None, "No frames were available for analysis."
+
+    annotated_frames = []
+    frame_metrics = []
+
+    for frame_rgb in frames_rgb:
+        metrics = analyze_frame_metrics(frame_rgb)
+        frame_metrics.append(metrics)
+        annotated_frames.append(metrics["annotated_frame"])
+
+    wellness_report = generate_vision_wellness_intelligence(
+        frame_metrics,
+        profile_age=profile_age
+    )
+
+    h, w, _ = frames_rgb[0].shape
+    count = total_frames if total_frames is not None else len(frames_rgb)
+    duration = (count / fps) if fps > 0 else float(len(frames_rgb))
+
+    return {
+        "filename": source_label,
+        "frame_count": count,
+        "fps": fps,
+        "width": w,
+        "height": h,
+        "duration": duration,
+        "frames": frames_rgb,
+        "annotated_frames": annotated_frames,
+        "frame_metrics": frame_metrics,
+        "wellness_report": wellness_report
+    }, None
+
+
 def inspect_video(video_bytes, filename, profile_age=None):
     temporary_path = None
     capture = None
@@ -432,13 +466,8 @@ def inspect_video(video_bytes, filename, profile_age=None):
 
         frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = capture.get(cv2.CAP_PROP_FPS)
-        width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        duration = frame_count / fps if fps > 0 else 0
 
         frames = []
-        annotated_frames = []
-        frame_metrics = []
 
         if frame_count > 0:
             positions = np.linspace(
@@ -456,29 +485,13 @@ def inspect_video(video_bytes, filename, profile_age=None):
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frames.append(frame_rgb)
 
-                    metrics = analyze_frame_metrics(frame_rgb)
-                    frame_metrics.append(metrics)
-                    annotated_frames.append(metrics["annotated_frame"])
-
-        wellness_report = generate_vision_wellness_intelligence(
-            frame_metrics,
+        return analyze_frame_sequence(
+            frames_rgb=frames,
+            source_label=filename,
+            fps=fps,
+            total_frames=frame_count,
             profile_age=profile_age
         )
-
-        result = {
-            "filename": filename,
-            "frame_count": frame_count,
-            "fps": fps,
-            "width": width,
-            "height": height,
-            "duration": duration,
-            "frames": frames,
-            "annotated_frames": annotated_frames,
-            "frame_metrics": frame_metrics,
-            "wellness_report": wellness_report
-        }
-
-        return result, None
 
     except Exception as error:
         return None, str(error)
@@ -516,18 +529,19 @@ if page == "Overview":
 
     with col2:
         st.metric(
-            "Video Inspection",
-            "Completed" if st.session_state.video_inspection else "Pending"
+            "Assessment Status",
+            "Completed" if st.session_state.video_inspection else "Ready"
         )
 
     with col3:
-        latest_wellness = (
-            f"{st.session_state.video_inspection['wellness_index']}/100"
-            if st.session_state.video_inspection and st.session_state.video_inspection.get("wellness_report")
-            else "—"
-        )
-        if st.session_state.video_inspection and st.session_state.video_inspection.get("wellness_report"):
-            latest_wellness = f"{st.session_state.video_inspection['wellness_report']['wellness_index']}/100"
+        latest_wellness = "—"
+        if (
+            st.session_state.video_inspection
+            and st.session_state.video_inspection.get("wellness_report")
+        ):
+            w_val = st.session_state.video_inspection["wellness_report"]["wellness_index"]
+            latest_wellness = f"{w_val}/100"
+
         st.metric(
             "Latest Wellness Index",
             latest_wellness
@@ -536,7 +550,7 @@ if page == "Overview":
     with col4:
         st.metric(
             "Platform Version",
-            "0.2"
+            "0.3"
         )
 
     st.divider()
@@ -546,11 +560,11 @@ if page == "Overview":
     left, right = st.columns(2)
 
     with left:
-        st.subheader("Pupil Check & Vision Wellness")
+        st.subheader("Live Pupil Check & Vision Wellness")
         st.write(
-            "Upload a video to evaluate recording quality separately from "
-            "pupil detection, measure gaze-axis angles, and generate Vision "
-            "Wellness Intelligence and referral guidance."
+            "Capture an eye sequence directly in the app (or upload a video) to "
+            "evaluate recording quality separately from pupil detection, measure "
+            "gaze-axis angles, and receive Vision Wellness Intelligence."
         )
 
     with right:
@@ -565,9 +579,9 @@ if page == "Overview":
     st.markdown("### Current Development")
 
     st.write(
-        "The current prototype supports video inspection, separated recording-quality "
-        "and pupil-detection scoring, angular alignment estimation, Vision Wellness "
-        "Intelligence, referral guidance, and follow-up session comparison."
+        "The current prototype supports direct in-app camera sequence capture, video upload, "
+        "separated recording-quality and pupil-detection scoring, angular alignment estimation, "
+        "Vision Wellness Intelligence, referral guidance, and follow-up session comparison."
     )
 
     st.caption(
@@ -585,51 +599,131 @@ elif page == "Pupil Check":
     st.title("Pupil Check")
 
     st.write(
-        "Video inspection, pupil detection, angle assessment, and Vision Wellness Intelligence."
+        "Record a live eye sequence directly in NEUROPULSE or upload an existing video."
     )
 
-    st.markdown("### Upload Video")
-
-    uploaded_video = st.file_uploader(
-        "Choose a video file",
-        type=["mp4", "avi", "mov", "mkv"]
+    capture_mode = st.radio(
+        "Select Input Method",
+        ["Record Live Eye Sequence (In-App Camera)", "Upload Existing Video File"],
+        horizontal=True
     )
 
-    if uploaded_video is not None:
+    user_age = (
+        calculate_age(st.session_state.profile_dob)
+        if st.session_state.profile_name
+        else None
+    )
 
+    # --------------------------------------------------
+    # OPTION A: DIRECT IN-APP CAMERA RECORDING SEQUENCE
+    # --------------------------------------------------
+    if capture_mode == "Record Live Eye Sequence (In-App Camera)":
+
+        st.markdown("### Guided In-App Eye Sequence Capture")
         st.caption(
-            f"Selected file: {uploaded_video.name}"
+            "Position your eye close to the camera in even, front-facing light. "
+            "Capture 1 to 6 sequential frames (e.g., Baseline Gaze → Steady Hold → Blink Recovery) "
+            "and click **Run Vision Wellness Analysis**."
         )
 
-        if st.button("Inspect Video", type="primary"):
+        cam_col1, cam_col2 = st.columns([2, 1])
 
-            with st.spinner("Running video inspection & Vision Wellness Intelligence..."):
+        with cam_col1:
+            camera_frame = st.camera_input(
+                "Align your eye within the frame and capture",
+                key="neuropulse_live_cam"
+            )
 
-                user_age = (
-                    calculate_age(st.session_state.profile_dob)
-                    if st.session_state.profile_name
-                    else None
-                )
+            if camera_frame is not None:
+                if st.button("Add Frame to Sequence", type="secondary"):
+                    file_bytes = np.asarray(bytearray(camera_frame.getvalue()), dtype=np.uint8)
+                    bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+                    if bgr is not None:
+                        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+                        if len(st.session_state.live_captures) < 6:
+                            st.session_state.live_captures.append(rgb)
+                            st.success(f"Frame {len(st.session_state.live_captures)} added to live sequence.")
+                        else:
+                            st.warning("Maximum 6 frames reached for this sequence. Analyze or clear sequence.")
 
-                result, error = inspect_video(
-                    uploaded_video.getvalue(),
-                    uploaded_video.name,
-                    profile_age=user_age
-                )
+        with cam_col2:
+            st.markdown("**Live Sequence Buffer**")
+            captured_count = len(st.session_state.live_captures)
+            st.metric("Captured Frames", f"{captured_count} / 6")
 
-                if error:
-                    st.error(error)
-                else:
-                    st.session_state.video_inspection = result
-                    st.success("Video inspection and Vision Wellness Intelligence completed.")
+            if captured_count > 0:
+                if st.button("Run Vision Wellness Analysis", type="primary", use_container_width=True):
+                    with st.spinner("Analyzing live sequence & Vision Wellness Intelligence..."):
+                        result, error = analyze_frame_sequence(
+                            frames_rgb=list(st.session_state.live_captures),
+                            source_label=f"Live Camera Session ({captured_count} frames)",
+                            fps=0.0,
+                            total_frames=captured_count,
+                            profile_age=user_age
+                        )
+                        if error:
+                            st.error(error)
+                        else:
+                            st.session_state.video_inspection = result
+                            st.success("Live sequence analysis completed.")
 
+                if st.button("Clear Captured Frames", use_container_width=True):
+                    st.session_state.live_captures = []
+                    st.rerun()
+            else:
+                st.info("Take a photo above and click **Add Frame to Sequence** (1–6 frames).")
+
+        if st.session_state.live_captures:
+            st.markdown("#### Queued Live Frames")
+            q_cols = st.columns(min(6, len(st.session_state.live_captures)))
+            for idx, q_frame in enumerate(st.session_state.live_captures):
+                with q_cols[idx]:
+                    st.image(q_frame, caption=f"Capture #{idx + 1}", use_container_width=True)
+
+    # --------------------------------------------------
+    # OPTION B: EXISTING VIDEO FILE UPLOAD
+    # --------------------------------------------------
+    else:
+
+        st.markdown("### Upload Video")
+
+        uploaded_video = st.file_uploader(
+            "Choose a video file",
+            type=["mp4", "avi", "mov", "mkv"]
+        )
+
+        if uploaded_video is not None:
+
+            st.caption(
+                f"Selected file: {uploaded_video.name}"
+            )
+
+            if st.button("Inspect Video", type="primary"):
+
+                with st.spinner("Running video inspection & Vision Wellness Intelligence..."):
+
+                    result, error = inspect_video(
+                        uploaded_video.getvalue(),
+                        uploaded_video.name,
+                        profile_age=user_age
+                    )
+
+                    if error:
+                        st.error(error)
+                    else:
+                        st.session_state.video_inspection = result
+                        st.success("Video inspection and Vision Wellness Intelligence completed.")
+
+    # --------------------------------------------------
+    # SHARED ANALYSIS RESULTS & VISION WELLNESS REPORT
+    # --------------------------------------------------
     result = st.session_state.video_inspection
 
     if result is not None:
 
         st.divider()
 
-        st.markdown("### Video Analysis Details")
+        st.markdown("### Capture & Signal Details")
 
         col1, col2, col3 = st.columns(3)
 
@@ -644,30 +738,27 @@ elif page == "Pupil Check":
                 "Frame Rate",
                 f"{result['fps']:.2f} FPS"
                 if result["fps"] > 0
-                else "Unavailable"
+                else "Sequential Capture"
             )
 
         with col3:
             st.metric(
-                "Duration",
-                f"{result['duration']:.2f} sec"
+                "Analyzed Samples",
+                f"{len(result['frames'])} frames"
             )
 
         col4, col5 = st.columns(2)
 
         with col4:
             st.metric(
-                "Total Frames",
+                "Total Source Frames",
                 result["frame_count"]
             )
 
         with col5:
-            st.write("**File Name**")
+            st.write("**Source**")
             st.write(result["filename"])
 
-        # --------------------------------------------------
-        # VISION WELLNESS INTELLIGENCE & SEPARATED SCORES
-        # --------------------------------------------------
         report = result.get("wellness_report")
 
         if report is not None:
@@ -725,7 +816,6 @@ elif page == "Pupil Check":
             for rec in report["recommendations"]:
                 st.markdown(f"- {rec}")
 
-            # Quick-save current assessment into Sessions for follow-up comparison
             st.markdown("#### Log Assessment to Follow-Up History")
             with st.form("quick_save_assessment"):
                 qs_col1, qs_col2 = st.columns([2, 1])
@@ -856,12 +946,36 @@ elif page == "Sessions":
                 record = {
                     "Session Name": session_name.strip(),
                     "Date": session_date.strftime("%Y-%m-%d"),
-                    "Recording Quality": latest_report["recording_quality_score"] if (attach_latest and latest_report) else None,
-                    "Detection Score": latest_report["detection_score"] if (attach_latest and latest_report) else None,
-                    "Wellness Index": latest_report["wellness_index"] if (attach_latest and latest_report) else None,
-                    "Mean Angle (deg)": latest_report["mean_angle_deg"] if (attach_latest and latest_report) else None,
-                    "Mean Pupil Ratio (%)": latest_report["mean_pupil_ratio"] if (attach_latest and latest_report) else None,
-                    "Referral Guidance": latest_report["referral_level"] if (attach_latest and latest_report) else "Manual Entry"
+                    "Recording Quality": (
+                        latest_report["recording_quality_score"]
+                        if (attach_latest and latest_report)
+                        else None
+                    ),
+                    "Detection Score": (
+                        latest_report["detection_score"]
+                        if (attach_latest and latest_report)
+                        else None
+                    ),
+                    "Wellness Index": (
+                        latest_report["wellness_index"]
+                        if (attach_latest and latest_report)
+                        else None
+                    ),
+                    "Mean Angle (deg)": (
+                        latest_report["mean_angle_deg"]
+                        if (attach_latest and latest_report)
+                        else None
+                    ),
+                    "Mean Pupil Ratio (%)": (
+                        latest_report["mean_pupil_ratio"]
+                        if (attach_latest and latest_report)
+                        else None
+                    ),
+                    "Referral Guidance": (
+                        latest_report["referral_level"]
+                        if (attach_latest and latest_report)
+                        else "Manual Entry"
+                    )
                 }
 
                 st.session_state.sessions.append(record)
@@ -878,9 +992,7 @@ elif page == "Sessions":
 
     if st.session_state.sessions:
 
-        sessions_df = pd.DataFrame(
-            st.session_state.sessions
-        )
+        sessions_df = pd.DataFrame(st.session_state.sessions)
 
         st.dataframe(
             sessions_df,
@@ -888,9 +1000,7 @@ elif page == "Sessions":
             hide_index=True
         )
 
-        csv_data = sessions_df.to_csv(
-            index=False
-        ).encode("utf-8")
+        csv_data = sessions_df.to_csv(index=False).encode("utf-8")
 
         st.download_button(
             "Export Session Records",
@@ -983,7 +1093,6 @@ elif page == "Sessions":
                     delta_color="off"
                 )
 
-            # Longitudinal interpretation note
             if abs(d_quality) >= 20.0:
                 st.warning(
                     f"Capture quality changed by {d_quality:+.1f} points between sessions. "
@@ -1110,7 +1219,7 @@ elif page == "Research":
 
     st.write(
         "Deterministic computer-vision estimation of pupil geometry, relative radius "
-        "dynamics, and gaze-axis angular deviation across sequential video frames."
+        "dynamics, and gaze-axis angular deviation across sequential frames."
     )
 
     st.divider()
@@ -1136,7 +1245,7 @@ elif page == "Research":
     st.markdown("### Development Status")
 
     st.write(
-        "The current version supports video inspection, sample-frame extraction, "
+        "The current version supports direct in-app camera capture, video inspection, "
         "pupil and angle overlays, separated recording-quality and detection scoring, "
         "Vision Wellness Intelligence, referral guidance, and follow-up comparison."
     )
@@ -1175,7 +1284,7 @@ elif page == "About":
 
     st.markdown("### Current Capabilities")
 
-    st.write("Video upload, metadata extraction, and frame visualization")
+    st.write("Direct in-app camera sequence capture and video upload")
     st.write("Pupil detection and gaze-axis angle assessment")
     st.write("Separated recording-quality and pupil-detection scoring")
     st.write("Vision Wellness Intelligence recommendations and referral guidance")
